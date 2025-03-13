@@ -11,6 +11,7 @@ export interface Token {
   logo: string;
   address?: string;
   decimals?: number;
+  isConfidential?: boolean;
 }
 
 export interface TokenContextType {

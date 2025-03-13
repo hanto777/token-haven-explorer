@@ -1,4 +1,3 @@
-
 import { ReactNode, useState, useEffect } from 'react';
 import { useWallet } from '@/hooks/useWallet';
 import { toast } from 'sonner';
@@ -89,7 +88,34 @@ export const TokenProvider = ({ children }: { children: ReactNode }) => {
   };
   
   const decryptToken = (id: string) => {
-    console.log("No encrypted tokens to decrypt");
+    setTokens(prevTokens => prevTokens.map(token => {
+      if (token.id === id && token.isEncrypted) {
+        // For confidential tokens, we simulate decryption
+        if (token.isConfidential) {
+          toast.success("Confidential token balance decrypted", {
+            description: "Your encrypted balance is now visible."
+          });
+          
+          // Simulate a "decrypted" balance for the confidential token
+          const decryptedBalance = (Math.random() * 1000).toFixed(2);
+          const value = parseFloat(decryptedBalance) * getTokenPrice(token.symbol, chainId);
+          
+          return {
+            ...token,
+            isDecrypted: true,
+            balance: decryptedBalance,
+            value
+          };
+        }
+        
+        // For regular encrypted tokens (future feature)
+        return {
+          ...token,
+          isDecrypted: true
+        };
+      }
+      return token;
+    }));
   };
   
   const sendToken = async (id: string, to: string, amount: string): Promise<boolean> => {

@@ -1,5 +1,6 @@
 
-import { mainnet, sepolia, polygon } from 'wagmi/chains';
+import { mainnet, sepolia, polygon, optimism, arbitrum } from 'wagmi/chains';
+import { CONFIDENTIAL_TOKEN_ADDRESS } from './confidentialErc20Abi';
 
 // Get the default native token based on chainId
 export const getNativeToken = (chainId: number) => {
@@ -98,6 +99,17 @@ export const getDefaultTokens = (chainId: number) => {
           isEncrypted: false,
           isDecrypted: false,
           logo: 'https://cryptologos.cc/logos/ethereum-eth-logo.png',
+        },
+        {
+          id: '4',
+          symbol: 'cUSDC',
+          name: 'Confidential USD Coin',
+          address: CONFIDENTIAL_TOKEN_ADDRESS,
+          decimals: 6,
+          isEncrypted: true,
+          isDecrypted: false,
+          isConfidential: true,
+          logo: 'https://cryptologos.cc/logos/usd-coin-usdc-logo.png',
         }
       ];
     case polygon.id:
@@ -152,7 +164,8 @@ export const getTokenPrice = (symbol: string, chainId?: number): number => {
     'WETH': 1940,
     'UNI': 9.8,
     'USDC': 1.0,
-    'WBTC': 49000
+    'WBTC': 49000,
+    'cUSDC': 1.0 // Add price for confidential USDC
   };
   
   return prices[symbol] || 1;

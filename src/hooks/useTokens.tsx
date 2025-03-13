@@ -6,6 +6,7 @@ import { useWriteContract, useAccount, useChainId } from 'wagmi';
 import { mainnet, sepolia, polygon, optimism, arbitrum } from 'wagmi/chains';
 import { toast } from 'sonner';
 import { erc20Abi } from '@/utils/erc20Abi';
+import { confidentialErc20Abi } from '@/utils/confidentialErc20Abi';
 import { parseUnits } from 'viem';
 
 export type { Token, TokenContextType };
@@ -67,16 +68,45 @@ export const useTokens = () => {
           chain = mainnet;
       }
       
-      // Execute the ERC20 transfer transaction
-      writeContract({
-        address: token.address as `0x${string}`,
-        abi: erc20Abi,
-        functionName: 'transfer',
-        args: [to as `0x${string}`, parsedAmount],
-        // Use the full chain object instead of just the ID
-        account: address,
-        chain: chain
-      });
+      // Check if this is a confidential token
+      if (token.isConfidential) {
+        // For confidential tokens, we need to use a different transfer method
+        // This is a simplified version - in reality, you'd need to handle the encryption properly
+        
+        // Ensure we're on Sepolia, as confidential tokens are only available there
+        if (chainId !== sepolia.id) {
+          throw new Error("Confidential tokens are only available on Sepolia testnet");
+        }
+        
+        // Mock encrypted input and proof for the demo
+        // In a real app, you'd generate these properly based on the user's private key
+        const mockEncryptedAmount = "0x0000000000000000000000000000000000000000000000000000000000000000" as `0x${string}`;
+        const mockInputProof = "0x" as `0x${string}`;
+        
+        // Execute the confidential token transfer transaction
+        writeContract({
+          address: token.address as `0x${string}`,
+          abi: confidentialErc20Abi,
+          functionName: 'transfer',
+          args: [to as `0x${string}`, mockEncryptedAmount, mockInputProof],
+          account: address,
+          chain: chain
+        });
+        
+        toast.info("Confidential Transfer Initiated", {
+          description: "Processing encrypted transaction. This may take longer than regular transfers."
+        });
+      } else {
+        // Regular ERC20 transfer
+        writeContract({
+          address: token.address as `0x${string}`,
+          abi: erc20Abi,
+          functionName: 'transfer',
+          args: [to as `0x${string}`, parsedAmount],
+          account: address,
+          chain: chain
+        });
+      }
       
       // We return true to indicate the transaction was initiated
       // The actual success/failure will be handled by the UI through the isPending/isSuccess/isError states
