@@ -14,6 +14,7 @@ import TransferSuccessMessage from "./TransferSuccessMessage";
 import TransferFormError from "./TransferFormError";
 import TransactionStatus from "./TransactionStatus";
 import TokenBalanceDisplay from "./TokenBalanceDisplay";
+import { type BaseError } from "wagmi"; // Add this import for BaseError type
 
 const NativeTransferForm = () => {
   const { address } = useAccount();
