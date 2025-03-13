@@ -1,14 +1,18 @@
+import { createContext, useContext, ReactNode, useState, useEffect } from "react";
+import { useConfig, useChainId, useSwitchChain } from "wagmi";
+import { mainnet, sepolia, polygon, optimism, arbitrum } from "wagmi/chains";
+import { toast } from "sonner";
 
-import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
-import { 
-  useAccount, 
-  useConfig, 
-  useChainId, 
-  useSwitchChain,
-} from 'wagmi';
-import type { Chain } from 'wagmi';
-import { toast } from 'sonner';
-import { mainnet, sepolia, polygon } from 'wagmi/chains';
+// Use type import for Chain
+import type { Chain } from "wagmi";
+
+export const SUPPORTED_CHAINS = [
+  mainnet,
+  sepolia,
+  polygon,
+  optimism,
+  arbitrum,
+];
 
 interface NetworkContextType {
   currentChain: Chain | undefined;
@@ -21,7 +25,7 @@ const NetworkContext = createContext<NetworkContextType>({
   currentChain: undefined,
   isSwitchingNetwork: false,
   switchNetwork: async () => {},
-  supportedNetworks: [mainnet, sepolia, polygon],
+  supportedNetworks: SUPPORTED_CHAINS,
 });
 
 export const NetworkProvider = ({ children }: { children: ReactNode }) => {
@@ -32,7 +36,7 @@ export const NetworkProvider = ({ children }: { children: ReactNode }) => {
   const [currentChain, setCurrentChain] = useState<Chain | undefined>(undefined);
   
   // We only want to support Ethereum, Sepolia testnet, and Polygon
-  const supportedNetworks = [mainnet, sepolia, polygon];
+  const supportedNetworks = SUPPORTED_CHAINS;
   
   useEffect(() => {
     if (isConnected && chainId) {

@@ -6,6 +6,8 @@ import { motion } from "framer-motion";
 import { ArrowUpRight, LockKeyhole, UnlockKeyhole } from "lucide-react";
 import { Token } from "@/hooks/useTokens";
 import { Link } from "react-router-dom";
+import { useTokenBalance } from "@/hooks/useTokenBalance";
+import { useAccount } from "wagmi";
 
 interface TokenCardProps {
   token: Token;
@@ -14,6 +16,19 @@ interface TokenCardProps {
 
 const TokenCard = ({ token, onDecrypt }: TokenCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
+  const { address } = useAccount();
+  
+  // Use the token balance hook to get real-time balance
+  const tokenBalance = useTokenBalance({
+    address: address,
+    tokenAddress: token.address || 'native',
+    enabled: !!address
+  });
+  
+  // Use the fetched balance if available, otherwise use the token's balance
+  const displayBalance = !tokenBalance.isLoading ? tokenBalance.balance : token.balance;
+  const displaySymbol = tokenBalance.symbol || token.symbol;
+  const displayValue = !tokenBalance.isLoading ? tokenBalance.value : token.value;
   
   const formatValue = (value: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -64,7 +79,7 @@ const TokenCard = ({ token, onDecrypt }: TokenCardProps) => {
               </div>
               <div>
                 <h3 className="font-semibold text-lg">{token.name}</h3>
-                <p className="text-sm text-muted-foreground">{token.symbol}</p>
+                <p className="text-sm text-muted-foreground">{displaySymbol}</p>
               </div>
             </div>
             
@@ -89,7 +104,7 @@ const TokenCard = ({ token, onDecrypt }: TokenCardProps) => {
             <div>
               <p className="text-sm text-muted-foreground">Balance</p>
               <p className="text-2xl font-medium tracking-tight">
-                {token.isEncrypted && !token.isDecrypted ? '•••••••' : `${token.balance} ${token.symbol}`}
+                {token.isEncrypted && !token.isDecrypted ? '•••••••' : `${displayBalance} ${displaySymbol}`}
               </p>
             </div>
             
@@ -97,7 +112,7 @@ const TokenCard = ({ token, onDecrypt }: TokenCardProps) => {
               <p className="text-sm text-muted-foreground">Value</p>
               <div className="flex items-center gap-2">
                 <p className="text-xl font-medium">
-                  {token.isEncrypted && !token.isDecrypted ? '•••••••' : formatValue(token.value)}
+                  {token.isEncrypted && !token.isDecrypted ? '•••••••' : formatValue(displayValue)}
                 </p>
                 
                 {!token.isEncrypted || token.isDecrypted ? (

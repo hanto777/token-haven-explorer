@@ -3,10 +3,9 @@ import { ReactNode, useState, useEffect } from 'react';
 import { useWallet } from '@/hooks/useWallet';
 import { toast } from 'sonner';
 import { useAccount, useChainId } from 'wagmi';
-import { useTokenBalance } from '@/hooks/useTokenBalance';
 import TokenContext from '@/contexts/TokenContext';
 import { Token } from '@/types/tokenTypes';
-import { getNativeToken, getDefaultTokens } from '@/utils/tokenUtils';
+import { getNativeToken, getDefaultTokens, getTokenPrice } from '@/utils/tokenUtils';
 
 export const TokenProvider = ({ children }: { children: ReactNode }) => {
   const { isConnected } = useWallet();
@@ -44,60 +43,56 @@ export const TokenProvider = ({ children }: { children: ReactNode }) => {
       setTokens(initialTokens);
       
       // Start fetching real balances for each token
-      fetchRealBalances(initialTokens, address);
+      fetchTokenBalances(address, chainId);
     } else {
       setTokens([]);
       setIsLoading(false);
     }
   }, [isConnected, address, chainId]);
-  
+
   // Function to fetch real balances for all tokens
-  const fetchRealBalances = async (initialTokens: Token[], walletAddress: string) => {
+  const fetchTokenBalances = async (walletAddress: string, currentChainId: number) => {
     try {
-      const updatedTokens = await Promise.all(
-        initialTokens.map(async (token) => {
-          // Skip encrypted tokens that haven't been decrypted
-          if (token.isEncrypted && !token.isDecrypted) {
-            return token;
-          }
-          
-          try {
-            if (token.address) {
-              // Use our custom hook to fetch token balance
-              const tokenBalance = useTokenBalance({
-                address: walletAddress,
-                tokenAddress: token.address,
-                enabled: true
-              });
-              
-              // Wait for the balance to load
-              if (!tokenBalance.isLoading && !tokenBalance.error) {
-                // Generate a random 24h change for demo purposes
-                const change24h = Math.random() * 10 - 5; // Random value between -5% and +5%
-                
-                return {
-                  ...token,
-                  balance: tokenBalance.balance,
-                  symbol: tokenBalance.symbol || token.symbol,
-                  name: tokenBalance.name || token.name,
-                  decimals: tokenBalance.decimals,
-                  value: tokenBalance.value,
-                  change24h
-                };
-              }
-            }
-          } catch (error) {
-            console.error(`Error fetching balance for ${token.symbol}:`, error);
-          }
-          
-          return token;
-        })
-      );
+      // Get the native token based on current chain
+      const nativeToken = getNativeToken(currentChainId);
       
-      setTokens(updatedTokens);
+      // Get other default tokens
+      const otherTokens = getDefaultTokens();
+      
+      // Skip MATIC token in other tokens list if we're on Polygon network
+      const filteredOtherTokens = currentChainId === 137 
+        ? otherTokens.filter(t => t.symbol !== 'MATIC')
+        : otherTokens;
+
+      // Generate random 24h changes for demo purposes
+      const nativeChange24h = Math.random() * 10 - 5; // Random value between -5% and +5%
+      
+      // Create the native token with balance placeholder - real balance will be fetched by useTokenBalance in TokenCard
+      const nativeTokenWithBalance = {
+        ...nativeToken,
+        balance: '0',
+        value: 0,
+        change24h: nativeChange24h
+      };
+      
+      // Create other tokens with balance placeholders
+      const otherTokensWithBalances = filteredOtherTokens.map(token => {
+        const change24h = Math.random() * 10 - 5; // Random value between -5% and +5%
+        return {
+          ...token,
+          balance: '0',
+          value: 0,
+          change24h
+        };
+      });
+      
+      // Combine native token and other tokens, always putting native token first
+      const allTokens = [nativeTokenWithBalance, ...otherTokensWithBalances];
+      
+      setTokens(allTokens);
     } catch (error) {
-      console.error("Error fetching token balances:", error);
-      toast.error("Failed to load token balances");
+      console.error("Error initializing tokens:", error);
+      toast.error("Failed to load token data");
     } finally {
       setIsLoading(false);
     }
@@ -131,11 +126,11 @@ export const TokenProvider = ({ children }: { children: ReactNode }) => {
       setTokens(prevTokens => 
         prevTokens.map(t => {
           if (t.id === id) {
-            const newBalance = (parseFloat(t.balance) - parseFloat(amount)).toFixed(2);
+            const newBalance = (parseFloat(t.balance) - parseFloat(amount)).toFixed(4);
             return {
               ...t,
               balance: newBalance,
-              value: parseFloat(newBalance) * (t.value / parseFloat(t.balance))
+              value: parseFloat(newBalance) * getTokenPrice(t.symbol, chainId)
             };
           }
           return t;

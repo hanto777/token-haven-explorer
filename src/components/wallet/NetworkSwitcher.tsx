@@ -1,7 +1,6 @@
-
-import { Button } from "@/components/ui/button";
-import { useNetwork } from "@/hooks/useNetwork";
-import { useWallet } from "@/hooks/useWallet";
+import { useEffect, useState } from "react";
+import { useConfig, useChainId, useSwitchChain } from "wagmi";
+import { mainnet, sepolia, polygon, optimism, arbitrum } from "wagmi/chains";
 import {
   Select,
   SelectContent,
@@ -9,59 +8,58 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+import { useNetwork } from "@/hooks/useNetwork";
+import { toast } from "sonner";
+
+// Use type import for Chain
 import type { Chain } from "wagmi";
 
+const SUPPORTED_CHAINS = [
+  mainnet,
+  sepolia,
+  polygon,
+  optimism,
+  arbitrum,
+];
+
 const NetworkSwitcher = () => {
-  const { isConnected } = useWallet();
-  const { currentChain, switchNetwork, isSwitchingNetwork, supportedNetworks } = useNetwork();
-  
-  // Get network icon based on chain ID
-  const getNetworkIcon = (chain: Chain) => {
-    const icons: Record<number, string> = {
-      1: "🌐", // Ethereum Mainnet
-      11155111: "🧪", // Sepolia
-      137: "🟣", // Polygon
-    };
-    
-    return icons[chain.id] || "🔗";
+  const { setChainId } = useNetwork();
+  const config = useConfig();
+  const chainId = useChainId();
+  const [mounted, setMounted] = useState(false);
+  const { switchChain } = useSwitchChain();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const handleChange = (value: string) => {
+    const chainId = parseInt(value);
+    setChainId(chainId);
+
+    const chain = SUPPORTED_CHAINS.find((chain) => chain.id === chainId);
+
+    if (chain && switchChain) {
+      switchChain({ chainId: chain.id });
+      toast.success(`Switched to ${chain.name}`);
+    } else {
+      toast.error("Chain not found");
+    }
   };
-  
-  if (!isConnected) {
-    return null;
-  }
-  
+
   return (
-    <div className="relative flex items-center">
-      <Select
-        disabled={isSwitchingNetwork}
-        value={currentChain?.id.toString()}
-        onValueChange={(value) => switchNetwork(parseInt(value))}
-      >
-        <SelectTrigger className="w-[140px] h-9 gap-1">
-          {isSwitchingNetwork ? (
-            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-          ) : (
-            currentChain && (
-              <span className="mr-1">{getNetworkIcon(currentChain)}</span>
-            )
-          )}
-          <SelectValue placeholder="Select Network">
-            {currentChain?.name || "Unknown Network"}
-          </SelectValue>
-        </SelectTrigger>
-        <SelectContent align="end">
-          {supportedNetworks.map((network) => (
-            <SelectItem key={network.id} value={network.id.toString()}>
-              <div className="flex items-center gap-2">
-                <span>{getNetworkIcon(network)}</span>
-                {network.name}
-              </div>
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
+    <Select value={chainId?.toString()} onValueChange={handleChange}>
+      <SelectTrigger className="w-[180px]">
+        <SelectValue placeholder="Select Network" />
+      </SelectTrigger>
+      <SelectContent>
+        {SUPPORTED_CHAINS.map((chain) => (
+          <SelectItem key={chain.id} value={chain.id.toString()}>
+            {chain.name}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 };
 
