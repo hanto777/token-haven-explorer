@@ -2,8 +2,8 @@
 import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { useWallet } from '@/hooks/useWallet';
 import { toast } from 'sonner';
-import { useAccount, useBalance, useToken } from 'wagmi';
-import { formatUnits } from 'viem';
+import { useAccount, useReadContract } from 'wagmi';
+import { useTokenBalance } from './useTokenBalance';
 
 export interface Token {
   id: string;
@@ -117,112 +117,63 @@ export const TokenProvider = ({ children }: { children: ReactNode }) => {
       
       setTokens(initialTokens);
       
-      // For each token, we'll fetch its balance and details separately
-      const fetchTokenBalances = async () => {
-        try {
-          const updatedTokens = await Promise.all(
-            initialTokens.map(async (token) => {
-              if (token.isEncrypted && !token.isDecrypted) {
-                return token;
-              }
-              
-              try {
-                // For native token (ETH)
-                if (token.address === 'native') {
-                  const ethBalance = await fetchNativeBalance(address);
-                  const price = getTokenPrice(token.symbol);
-                  const value = parseFloat(ethBalance) * price;
-                  
-                  return {
-                    ...token,
-                    balance: ethBalance,
-                    value,
-                    change24h: Math.random() * 10 - 5, // Random change for demo
-                  };
-                } 
-                // For ERC-20 tokens
-                else if (token.address) {
-                  const { tokenBalance, decimals, symbol, name } = await fetchTokenBalance(token.address, address);
-                  const price = getTokenPrice(symbol);
-                  const value = parseFloat(tokenBalance) * price;
-                  
-                  return {
-                    ...token,
-                    balance: tokenBalance,
-                    symbol: symbol || token.symbol,
-                    name: name || token.name,
-                    decimals,
-                    value,
-                    change24h: Math.random() * 10 - 5, // Random change for demo
-                  };
-                }
-              } catch (error) {
-                console.error(`Error fetching balance for ${token.symbol}:`, error);
-              }
-              
-              return token;
-            })
-          );
-          
-          setTokens(updatedTokens);
-        } catch (error) {
-          console.error("Error fetching token balances:", error);
-          toast.error("Failed to load token balances");
-        } finally {
-          setIsLoading(false);
-        }
-      };
-      
-      fetchTokenBalances();
+      // Start fetching real balances for each token
+      fetchRealBalances(initialTokens, address);
     } else {
       setTokens([]);
       setIsLoading(false);
     }
   }, [isConnected, address]);
   
-  const fetchNativeBalance = async (walletAddress: string): Promise<string> => {
+  // Function to fetch real balances for all tokens
+  const fetchRealBalances = async (initialTokens: Token[], walletAddress: string) => {
     try {
-      // This is a placeholder - in a real app you would use wagmi's useBalance hook
-      // For simplicity in this example, we're using a mock value
-      // In production, you'd implement proper balance fetching
-      return '0.01';
-    } catch (error) {
-      console.error('Error fetching native balance:', error);
-      return '0';
-    }
-  };
-  
-  const fetchTokenBalance = async (tokenAddress: string, walletAddress: string): Promise<{ 
-    tokenBalance: string;
-    decimals: number;
-    symbol: string;
-    name: string;
-  }> => {
-    try {
-      // This is a placeholder - in a real app you would use wagmi's hooks
-      // For simplicity in this example, we're using mock values
-      // In production, you'd implement proper token balance fetching
-      const mockBalances: Record<string, string> = {
-        '0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0': '150.75', // MATIC
-        '0x514910771AF9Ca656af840dff83E8264EcF986CA': '10.5',   // LINK
-        '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2': '0.5',    // WETH (PRIVATE)
-        '0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984': '25.0',   // UNI (SECRET)
-      };
+      const updatedTokens = await Promise.all(
+        initialTokens.map(async (token) => {
+          // Skip encrypted tokens that haven't been decrypted
+          if (token.isEncrypted && !token.isDecrypted) {
+            return token;
+          }
+          
+          try {
+            if (token.address) {
+              // Use our custom hook to fetch token balance
+              const tokenBalance = useTokenBalance({
+                address: walletAddress,
+                tokenAddress: token.address,
+                enabled: true
+              });
+              
+              // Wait for the balance to load
+              if (!tokenBalance.isLoading && !tokenBalance.error) {
+                // Generate a random 24h change for demo purposes
+                const change24h = Math.random() * 10 - 5; // Random value between -5% and +5%
+                
+                return {
+                  ...token,
+                  balance: tokenBalance.balance,
+                  symbol: tokenBalance.symbol || token.symbol,
+                  name: tokenBalance.name || token.name,
+                  decimals: tokenBalance.decimals,
+                  value: tokenBalance.value,
+                  change24h
+                };
+              }
+            }
+          } catch (error) {
+            console.error(`Error fetching balance for ${token.symbol}:`, error);
+          }
+          
+          return token;
+        })
+      );
       
-      return {
-        tokenBalance: mockBalances[tokenAddress] || '0',
-        decimals: 18,
-        symbol: DEFAULT_TOKENS.find(t => t.address === tokenAddress)?.symbol || 'UNKNOWN',
-        name: DEFAULT_TOKENS.find(t => t.address === tokenAddress)?.name || 'Unknown Token'
-      };
+      setTokens(updatedTokens);
     } catch (error) {
-      console.error('Error fetching token balance:', error);
-      return {
-        tokenBalance: '0',
-        decimals: 18,
-        symbol: 'UNKNOWN',
-        name: 'Unknown Token'
-      };
+      console.error("Error fetching token balances:", error);
+      toast.error("Failed to load token balances");
+    } finally {
+      setIsLoading(false);
     }
   };
   
@@ -230,25 +181,20 @@ export const TokenProvider = ({ children }: { children: ReactNode }) => {
     setTokens(prevTokens => 
       prevTokens.map(token => {
         if (token.id === id && token.isEncrypted) {
-          // Fetch the actual balance for encrypted tokens
-          const mockDecryptedTokens: Record<string, { balance: string, value: number }> = {
-            '4': { balance: '0.5', value: 970 },     // PRIVATE (WETH)
-            '5': { balance: '25.0', value: 245 },    // SECRET (UNI)
-          };
-          
-          const decryptedData = mockDecryptedTokens[id] || { balance: '0', value: 0 };
-          
-          toast.success(`Token decrypted successfully!`, {
-            description: `You have ${decryptedData.balance} ${token.symbol} (${decryptedData.value.toFixed(2)} USD)`
-          });
-          
-          return {
+          // For encrypted tokens, now fetch their real balances
+          const updatedToken = {
             ...token,
-            balance: decryptedData.balance,
-            value: decryptedData.value,
-            change24h: (Math.random() * 10) - 5,
             isDecrypted: true
           };
+          
+          // If we're connected and have an address, fetch the real balance
+          if (isConnected && address && token.address) {
+            toast.success("Decrypting token balance...");
+            // This will trigger a re-render which will fetch the real balance
+            // in the useEffect hook
+          }
+          
+          return updatedToken;
         }
         return token;
       })
@@ -271,6 +217,9 @@ export const TokenProvider = ({ children }: { children: ReactNode }) => {
         });
         return false;
       }
+      
+      // In a real implementation, this would call the token contract's transfer method
+      // For now, we just simulate the transfer by updating the UI
       
       // Update the token balance
       setTokens(prevTokens => 

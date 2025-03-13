@@ -5,9 +5,17 @@ import { useWallet } from "@/hooks/useWallet";
 import { Button } from "@/components/ui/button";
 import { WalletIcon } from "lucide-react";
 import { motion } from "framer-motion";
+import { useAccount } from "wagmi";
 
 const Dashboard = () => {
-  const { isConnected } = useWallet();
+  const { isConnected, connect } = useWallet();
+  const { address } = useAccount();
+
+  const handleConnect = () => {
+    if (!isConnected && connect) {
+      connect();
+    }
+  };
 
   return (
     <PageTransition>
@@ -25,6 +33,11 @@ const Dashboard = () => {
           <p className="text-muted-foreground text-balance max-w-xl mx-auto">
             View, manage, and transfer your tokens securely from a single dashboard. Encrypted tokens need to be decrypted before transferring.
           </p>
+          {address && (
+            <div className="mt-2 text-sm text-muted-foreground">
+              Connected: {address.slice(0, 6)}...{address.slice(-4)}
+            </div>
+          )}
         </motion.div>
 
         {isConnected ? (
@@ -43,7 +56,7 @@ const Dashboard = () => {
             <p className="text-muted-foreground text-center max-w-md mb-6">
               Connect your wallet to view your token balances and manage your portfolio.
             </p>
-            <Button size="lg" className="mt-2">
+            <Button size="lg" className="mt-2" onClick={handleConnect}>
               Connect Wallet
             </Button>
           </motion.div>
