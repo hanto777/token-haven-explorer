@@ -35,17 +35,17 @@ const TransferForm = () => {
   // Fetch real-time balance for the selected token
   const tokenBalance = useTokenBalance({
     address: address,
-    tokenAddress: selectedToken?.address || 'native',
-    enabled: !!address && !!selectedToken
+    tokenAddress: selectedToken?.address || '',
+    enabled: !!address && !!selectedToken && selectedToken.id !== '1' // Don't fetch for native token
   });
   
-  // Set initial token selection from URL params
+  // Set initial token selection from URL params, but ignore native token (id=1)
   useEffect(() => {
-    if (initialTokenId && tokens.some(t => t.id === initialTokenId)) {
+    if (initialTokenId && initialTokenId !== '1' && tokens.some(t => t.id === initialTokenId)) {
       setSelectedTokenId(initialTokenId);
     } else if (tokens.length > 0) {
-      // Default to first non-encrypted token
-      const firstToken = tokens.find(t => !t.isEncrypted);
+      // Filter out native token (id=1) and find the first non-native token
+      const firstToken = tokens.find(t => t.id !== '1' && !t.isEncrypted);
       if (firstToken) {
         setSelectedTokenId(firstToken.id);
       }
@@ -118,8 +118,11 @@ const TransferForm = () => {
     ? tokenBalance.balance 
     : selectedToken?.balance || '0';
   
+  // Filter out the native token (id=1) from the tokens list
+  const filteredTokens = tokens.filter(token => token.id !== '1');
+  
   return (
-    <Card className="w-full max-w-md mx-auto border bg-card/60 backdrop-blur-xs">
+    <Card className="w-full border bg-card/60 backdrop-blur-xs">
       <CardContent className="p-6">
         <AnimatePresence mode="wait">
           {isSuccess ? (
@@ -163,13 +166,13 @@ const TransferForm = () => {
                 <Select
                   value={selectedTokenId}
                   onValueChange={setSelectedTokenId}
-                  disabled={isLoading || isSubmitting}
+                  disabled={isLoading || isSubmitting || filteredTokens.length === 0}
                 >
                   <SelectTrigger id="token" className="w-full">
                     <SelectValue placeholder="Select token" />
                   </SelectTrigger>
                   <SelectContent>
-                    {tokens
+                    {filteredTokens
                       .filter(token => !token.isEncrypted || token.isDecrypted)
                       .map(token => (
                         <SelectItem key={token.id} value={token.id}>

@@ -1,13 +1,26 @@
 
 import PageTransition from "@/components/layout/PageTransition";
 import TransferForm from "@/components/transfers/TransferForm";
+import NativeTransferForm from "@/components/transfers/NativeTransferForm";
 import { useWallet } from "@/hooks/useWallet";
 import { Button } from "@/components/ui/button";
-import { WalletIcon } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { WalletIcon, CoinsIcon, BanknoteIcon } from "lucide-react";
 import { motion } from "framer-motion";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 const Transfer = () => {
   const { isConnected } = useWallet();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const initialToken = searchParams.get('token');
+  const initialTab = initialToken === '1' ? 'native' : 'tokens';
+
+  // Update URL when tab changes
+  const handleTabChange = (value: string) => {
+    navigate(value === 'native' ? '/transfer?token=1' : '/transfer', { replace: true });
+  };
 
   return (
     <PageTransition>
@@ -21,15 +34,32 @@ const Transfer = () => {
           <span className="inline-block text-xs font-medium bg-primary/10 text-primary px-3 py-1 rounded-full mb-2">
             Transfer
           </span>
-          <h1 className="text-4xl font-semibold tracking-tight mb-3">Send Tokens</h1>
+          <h1 className="text-4xl font-semibold tracking-tight mb-3">Send Assets</h1>
           <p className="text-muted-foreground text-balance max-w-xl mx-auto">
-            Transfer your tokens to any address quickly and securely.
+            Transfer your assets to any address quickly and securely.
           </p>
         </motion.div>
 
         {isConnected ? (
-          <div className="mt-8">
-            <TransferForm />
+          <div className="mt-8 max-w-md mx-auto">
+            <Tabs defaultValue={initialTab} onValueChange={handleTabChange} className="w-full">
+              <TabsList className="grid grid-cols-2 mb-6">
+                <TabsTrigger value="native" className="flex items-center gap-2">
+                  <BanknoteIcon className="h-4 w-4" />
+                  <span>Send Balance</span>
+                </TabsTrigger>
+                <TabsTrigger value="tokens" className="flex items-center gap-2">
+                  <CoinsIcon className="h-4 w-4" />
+                  <span>Send Tokens</span>
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="native">
+                <NativeTransferForm />
+              </TabsContent>
+              <TabsContent value="tokens">
+                <TransferForm />
+              </TabsContent>
+            </Tabs>
           </div>
         ) : (
           <motion.div
