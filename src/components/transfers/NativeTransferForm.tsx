@@ -1,21 +1,19 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAccount, useChainId } from "wagmi";
-import { 
-  useSendTransaction, 
-  useWaitForTransactionReceipt,
-  type BaseError
-} from "wagmi";
-import { parseEther } from "viem";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowRight, AlertCircle, CheckCircle2 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useTokenBalance } from "@/hooks/useTokenBalance";
 import { getNativeToken } from "@/utils/tokenUtils";
-import { toast } from "sonner";
+import { useNativeTransfer } from "@/hooks/useNativeTransfer";
+import TransferSuccessMessage from "./TransferSuccessMessage";
+import TransferFormError from "./TransferFormError";
+import TransactionStatus from "./TransactionStatus";
+import TokenBalanceDisplay from "./TokenBalanceDisplay";
 
 const NativeTransferForm = () => {
   const { address } = useAccount();
@@ -23,8 +21,6 @@ const NativeTransferForm = () => {
   
   const [recipient, setRecipient] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
-  const [formError, setFormError] = useState<string>("");
-  const [isSuccess, setIsSuccess] = useState<boolean>(false);
   
   // Get native token data
   const nativeToken = getNativeToken(chainId);
@@ -36,81 +32,37 @@ const NativeTransferForm = () => {
     enabled: !!address
   });
 
-  // Wagmi hooks for transactions
+  // Use our custom hook for transfer logic
   const { 
-    data: hash,
-    error,
-    isPending,
-    sendTransaction 
-  } = useSendTransaction();
-
-  const { 
-    isLoading: isConfirming, 
-    isSuccess: isConfirmed 
-  } = useWaitForTransactionReceipt({ 
     hash, 
-  });
-  
-  // Show transaction result in toast when confirmed
-  useEffect(() => {
-    if (isConfirmed && hash) {
-      setIsSuccess(true);
-      toast.success("Transfer successful", {
-        description: `Transaction confirmed: ${hash.slice(0, 10)}...${hash.slice(-8)}`
-      });
-      // Reset form after success
+    error, 
+    formError, 
+    isPending, 
+    isConfirming, 
+    isConfirmed,
+    isSuccess,
+    validateAndSendTransaction,
+    resetTransfer
+  } = useNativeTransfer({
+    onSuccess: () => {
+      // Reset form after success with a small delay
       setTimeout(() => {
-        setIsSuccess(false);
         setAmount("");
         setRecipient("");
+        resetTransfer();
       }, 3000);
     }
-  }, [isConfirmed, hash]);
-
-  // Show error in toast
-  useEffect(() => {
-    if (error) {
-      const errorMessage = (error as BaseError).shortMessage || error.message;
-      toast.error("Transfer failed", {
-        description: errorMessage
-      });
-    }
-  }, [error]);
-  
-  const validateForm = (): boolean => {
-    if (!recipient || !/^0x[a-fA-F0-9]{40}$/.test(recipient)) {
-      setFormError("Please enter a valid Ethereum address");
-      return false;
-    }
-    
-    if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
-      setFormError("Please enter a valid amount");
-      return false;
-    }
-    
-    if (Number(amount) > Number(tokenBalance.balance)) {
-      setFormError(`Insufficient balance. You have ${tokenBalance.balance} ${tokenBalance.symbol}`);
-      return false;
-    }
-    
-    setFormError("");
-    return true;
-  };
+  });
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validateForm()) return;
-    
-    try {
-      sendTransaction({ 
-        to: recipient as `0x${string}`, 
-        value: parseEther(amount) 
-      });
-    } catch (error) {
-      console.error("Transfer error:", error);
-      setFormError("Transfer failed. Please try again.");
-    }
+    validateAndSendTransaction(recipient, amount, tokenBalance.balance);
+  };
+  
+  const handleReset = () => {
+    resetTransfer();
+    setAmount("");
+    setRecipient("");
   };
   
   return (
@@ -118,42 +70,12 @@ const NativeTransferForm = () => {
       <CardContent className="p-6">
         <AnimatePresence mode="wait">
           {isSuccess ? (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.2 }}
-              className="flex flex-col items-center justify-center py-10 text-center space-y-4"
-            >
-              <div className="h-16 w-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                <CheckCircle2 className="h-8 w-8 text-green-600 dark:text-green-400" />
-              </div>
-              <h3 className="text-xl font-medium">Transfer Successful</h3>
-              <p className="text-muted-foreground">
-                {amount} {tokenBalance.symbol} has been sent to the recipient
-              </p>
-              {hash && (
-                <a 
-                  href={`https://etherscan.io/tx/${hash}`} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-sm text-primary hover:underline"
-                >
-                  View transaction
-                </a>
-              )}
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setIsSuccess(false);
-                  setAmount("");
-                  setRecipient("");
-                }}
-                className="mt-4"
-              >
-                Make Another Transfer
-              </Button>
-            </motion.div>
+            <TransferSuccessMessage 
+              amount={amount} 
+              symbol={tokenBalance.symbol || ''} 
+              hash={hash} 
+              onReset={handleReset} 
+            />
           ) : (
             <motion.form
               initial={{ opacity: 0 }}
@@ -179,18 +101,11 @@ const NativeTransferForm = () => {
                   <h3 className="text-lg font-medium">Send {tokenBalance.symbol}</h3>
                 </div>
                 
-                <div className="bg-muted/50 rounded-md p-3 mt-4 mb-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Available Balance:</span>
-                    <span className="font-medium">
-                      {tokenBalance.isLoading ? (
-                        <span className="h-4 w-16 bg-muted animate-pulse rounded"></span>
-                      ) : (
-                        `${tokenBalance.balance} ${tokenBalance.symbol}`
-                      )}
-                    </span>
-                  </div>
-                </div>
+                <TokenBalanceDisplay 
+                  balance={tokenBalance.balance} 
+                  symbol={tokenBalance.symbol || ''} 
+                  isLoading={tokenBalance.isLoading} 
+                />
               </div>
               
               <div className="space-y-2">
@@ -236,27 +151,13 @@ const NativeTransferForm = () => {
                 </Button>
               </div>
               
-              {formError && (
-                <div className="flex items-center gap-2 text-sm text-destructive rounded-md p-2 bg-destructive/10">
-                  <AlertCircle className="h-4 w-4" />
-                  <p>{formError}</p>
-                </div>
-              )}
+              <TransferFormError message={formError} />
 
               {error && (
-                <div className="flex items-center gap-2 text-sm text-destructive rounded-md p-2 bg-destructive/10">
-                  <AlertCircle className="h-4 w-4" />
-                  <p>{(error as BaseError).shortMessage || error.message}</p>
-                </div>
+                <TransferFormError message={(error as BaseError).shortMessage || error.message} />
               )}
               
-              {hash && !isConfirmed && (
-                <div className="flex items-center gap-2 text-sm text-primary rounded-md p-2 bg-primary/10">
-                  <p>
-                    Transaction submitted: {hash.slice(0, 6)}...{hash.slice(-4)}
-                  </p>
-                </div>
-              )}
+              <TransactionStatus hash={hash} isConfirmed={isConfirmed} />
               
               <Button
                 type="submit"
