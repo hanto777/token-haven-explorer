@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAccount, useChainId } from "wagmi";
 import { 
   useSendTransaction, 
@@ -52,7 +52,7 @@ const NativeTransferForm = () => {
   });
   
   // Show transaction result in toast when confirmed
-  React.useEffect(() => {
+  useEffect(() => {
     if (isConfirmed && hash) {
       setIsSuccess(true);
       toast.success("Transfer successful", {
@@ -68,7 +68,7 @@ const NativeTransferForm = () => {
   }, [isConfirmed, hash]);
 
   // Show error in toast
-  React.useEffect(() => {
+  useEffect(() => {
     if (error) {
       const errorMessage = (error as BaseError).shortMessage || error.message;
       toast.error("Transfer failed", {
