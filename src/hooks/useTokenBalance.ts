@@ -20,14 +20,18 @@ export function useTokenBalance({ address, tokenAddress, enabled = true }: UseTo
   // Token data query (for ERC20 tokens)
   const tokenData = useToken({
     address: isNativeToken ? undefined : tokenAddress as `0x${string}`,
-    enabled: enabled && !isNativeToken
+    query: {
+      enabled: enabled && !isNativeToken && !!tokenAddress
+    }
   });
   
   // Balance query
   const balanceData = useBalance({
     address: address as `0x${string}`,
     token: isNativeToken ? undefined : tokenAddress as `0x${string}`,
-    enabled: enabled && !!address
+    query: {
+      enabled: enabled && !!address
+    }
   });
   
   useEffect(() => {

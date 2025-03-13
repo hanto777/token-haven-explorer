@@ -27,6 +27,7 @@ const DEFAULT_TOKENS = [
     name: 'Ethereum',
     address: 'native',
     isEncrypted: false,
+    isDecrypted: false,
     logo: 'https://cryptologos.cc/logos/ethereum-eth-logo.png',
   },
   {
@@ -35,6 +36,7 @@ const DEFAULT_TOKENS = [
     name: 'Polygon',
     address: '0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0', // Ethereum Mainnet MATIC
     isEncrypted: false,
+    isDecrypted: false,
     logo: 'https://cryptologos.cc/logos/polygon-matic-logo.png',
   },
   {
@@ -43,6 +45,7 @@ const DEFAULT_TOKENS = [
     name: 'Chainlink',
     address: '0x514910771AF9Ca656af840dff83E8264EcF986CA', // Ethereum Mainnet LINK
     isEncrypted: false,
+    isDecrypted: false,
     logo: 'https://cryptologos.cc/logos/chainlink-link-logo.png',
   },
   {
@@ -51,6 +54,7 @@ const DEFAULT_TOKENS = [
     name: 'Private Token',
     address: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2', // This is WETH, just for demo
     isEncrypted: true,
+    isDecrypted: false,
     logo: 'https://cryptologos.cc/logos/mask-network-mask-logo.png',
   },
   {
@@ -59,6 +63,7 @@ const DEFAULT_TOKENS = [
     name: 'Secret Token',
     address: '0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984', // This is UNI, just for demo
     isEncrypted: true,
+    isDecrypted: false,
     logo: 'https://cryptologos.cc/logos/secret-scrt-logo.png',
   }
 ];
