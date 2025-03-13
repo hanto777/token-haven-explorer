@@ -1,4 +1,3 @@
-
 import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { useWallet } from '@/hooks/useWallet';
 import { toast } from 'sonner';
@@ -47,24 +46,6 @@ const DEFAULT_TOKENS = [
     isEncrypted: false,
     isDecrypted: false,
     logo: 'https://cryptologos.cc/logos/chainlink-link-logo.png',
-  },
-  {
-    id: '4',
-    symbol: 'PRIVATE',
-    name: 'Private Token',
-    address: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2', // This is WETH, just for demo
-    isEncrypted: true,
-    isDecrypted: false,
-    logo: 'https://cryptologos.cc/logos/mask-network-mask-logo.png',
-  },
-  {
-    id: '5',
-    symbol: 'SECRET',
-    name: 'Secret Token',
-    address: '0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984', // This is UNI, just for demo
-    isEncrypted: true,
-    isDecrypted: false,
-    logo: 'https://cryptologos.cc/logos/secret-scrt-logo.png',
   }
 ];
 
@@ -75,9 +56,7 @@ const getTokenPrice = (symbol: string): number => {
     'MATIC': 1.1,
     'LINK': 11.5,
     'WETH': 1940,
-    'UNI': 9.8,
-    'PRIVATE': 120,
-    'SECRET': 45
+    'UNI': 9.8
   };
   
   return prices[symbol] || 1;
@@ -110,7 +89,7 @@ export const TokenProvider = ({ children }: { children: ReactNode }) => {
       // Initialize tokens with default values
       const initialTokens = DEFAULT_TOKENS.map(token => ({
         ...token,
-        balance: token.isEncrypted ? '???' : '0',
+        balance: '0',
         value: 0,
         change24h: 0
       }));
@@ -178,27 +157,7 @@ export const TokenProvider = ({ children }: { children: ReactNode }) => {
   };
   
   const decryptToken = (id: string) => {
-    setTokens(prevTokens => 
-      prevTokens.map(token => {
-        if (token.id === id && token.isEncrypted) {
-          // For encrypted tokens, now fetch their real balances
-          const updatedToken = {
-            ...token,
-            isDecrypted: true
-          };
-          
-          // If we're connected and have an address, fetch the real balance
-          if (isConnected && address && token.address) {
-            toast.success("Decrypting token balance...");
-            // This will trigger a re-render which will fetch the real balance
-            // in the useEffect hook
-          }
-          
-          return updatedToken;
-        }
-        return token;
-      })
-    );
+    console.log("No encrypted tokens to decrypt");
   };
   
   const sendToken = async (id: string, to: string, amount: string): Promise<boolean> => {

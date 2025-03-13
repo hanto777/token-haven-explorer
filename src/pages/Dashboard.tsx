@@ -8,12 +8,12 @@ import { motion } from "framer-motion";
 import { useAccount } from "wagmi";
 
 const Dashboard = () => {
-  const { isConnected, connect } = useWallet();
+  const { isConnected, openConnectModal } = useWallet();
   const { address } = useAccount();
 
   const handleConnect = () => {
-    if (!isConnected && connect) {
-      connect();
+    if (!isConnected && openConnectModal) {
+      openConnectModal();
     }
   };
 
@@ -31,7 +31,7 @@ const Dashboard = () => {
           </span>
           <h1 className="text-4xl font-semibold tracking-tight mb-3">Your Token Portfolio</h1>
           <p className="text-muted-foreground text-balance max-w-xl mx-auto">
-            View, manage, and transfer your tokens securely from a single dashboard. Encrypted tokens need to be decrypted before transferring.
+            View, manage, and transfer your tokens securely from a single dashboard.
           </p>
           {address && (
             <div className="mt-2 text-sm text-muted-foreground">
