@@ -21,18 +21,13 @@ export const TokenProvider = ({ children }: { children: ReactNode }) => {
       // Get the native token based on current chain
       const nativeToken = getNativeToken(chainId);
       
-      // Get other default tokens
-      const otherTokens = getDefaultTokens();
-      
-      // Skip MATIC token in other tokens list if we're on Polygon network
-      const filteredOtherTokens = chainId === 137 
-        ? otherTokens.filter(t => t.symbol !== 'MATIC')
-        : otherTokens;
+      // Get other default tokens based on the current chain
+      const otherTokens = getDefaultTokens(chainId);
       
       // Initialize tokens with default values, always putting native token first
       const initialTokens = [
         { ...nativeToken, balance: '0', value: 0, change24h: 0 },
-        ...filteredOtherTokens.map(token => ({
+        ...otherTokens.map(token => ({
           ...token,
           balance: '0',
           value: 0,
@@ -56,13 +51,8 @@ export const TokenProvider = ({ children }: { children: ReactNode }) => {
       // Get the native token based on current chain
       const nativeToken = getNativeToken(currentChainId);
       
-      // Get other default tokens
-      const otherTokens = getDefaultTokens();
-      
-      // Skip MATIC token in other tokens list if we're on Polygon network
-      const filteredOtherTokens = currentChainId === 137 
-        ? otherTokens.filter(t => t.symbol !== 'MATIC')
-        : otherTokens;
+      // Get other default tokens based on the current chain
+      const otherTokens = getDefaultTokens(currentChainId);
 
       // Generate random 24h changes for demo purposes
       const nativeChange24h = Math.random() * 10 - 5; // Random value between -5% and +5%
@@ -76,7 +66,7 @@ export const TokenProvider = ({ children }: { children: ReactNode }) => {
       };
       
       // Create other tokens with balance placeholders
-      const otherTokensWithBalances = filteredOtherTokens.map(token => {
+      const otherTokensWithBalances = otherTokens.map(token => {
         const change24h = Math.random() * 10 - 5; // Random value between -5% and +5%
         return {
           ...token,

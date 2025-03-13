@@ -47,27 +47,131 @@ export const getNativeToken = (chainId: number) => {
   }
 };
 
-// Get the rest of the default tokens (non-native)
-export const getDefaultTokens = () => [
-  {
-    id: '2',
-    symbol: 'MATIC',
-    name: 'Polygon',
-    address: '0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0', // Ethereum Mainnet MATIC
-    isEncrypted: false,
-    isDecrypted: false,
-    logo: 'https://cryptologos.cc/logos/polygon-matic-logo.png',
-  },
-  {
-    id: '3',
-    symbol: 'LINK',
-    name: 'Chainlink',
-    address: '0x514910771AF9Ca656af840dff83E8264EcF986CA', // Ethereum Mainnet LINK
-    isEncrypted: false,
-    isDecrypted: false,
-    logo: 'https://cryptologos.cc/logos/chainlink-link-logo.png',
+// Get the rest of the default tokens (non-native) based on chain
+export const getDefaultTokens = (chainId: number) => {
+  switch (chainId) {
+    case mainnet.id:
+      return [
+        {
+          id: '2',
+          symbol: 'USDC',
+          name: 'USD Coin',
+          address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          isEncrypted: false,
+          isDecrypted: false,
+          logo: 'https://cryptologos.cc/logos/usd-coin-usdc-logo.png',
+        },
+        {
+          id: '3',
+          symbol: 'WBTC',
+          name: 'Wrapped Bitcoin',
+          address: '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599',
+          isEncrypted: false,
+          isDecrypted: false,
+          logo: 'https://cryptologos.cc/logos/wrapped-bitcoin-wbtc-logo.png',
+        },
+        {
+          id: '4',
+          symbol: 'MATIC',
+          name: 'Polygon',
+          address: '0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0',
+          isEncrypted: false,
+          isDecrypted: false,
+          logo: 'https://cryptologos.cc/logos/polygon-matic-logo.png',
+        },
+        {
+          id: '5',
+          symbol: 'LINK',
+          name: 'Chainlink',
+          address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
+          isEncrypted: false,
+          isDecrypted: false,
+          logo: 'https://cryptologos.cc/logos/chainlink-link-logo.png',
+        }
+      ];
+    case sepolia.id:
+      return [
+        {
+          id: '2',
+          symbol: 'USDC',
+          name: 'USD Coin (Sepolia)',
+          address: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238',
+          isEncrypted: false,
+          isDecrypted: false,
+          logo: 'https://cryptologos.cc/logos/usd-coin-usdc-logo.png',
+        },
+        {
+          id: '3',
+          symbol: 'WETH',
+          name: 'Wrapped Ether (Sepolia)',
+          address: '0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14',
+          isEncrypted: false,
+          isDecrypted: false,
+          logo: 'https://cryptologos.cc/logos/ethereum-eth-logo.png',
+        },
+        {
+          id: '4',
+          symbol: 'LINK',
+          name: 'Chainlink',
+          address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
+          isEncrypted: false,
+          isDecrypted: false,
+          logo: 'https://cryptologos.cc/logos/chainlink-link-logo.png',
+        }
+      ];
+    case polygon.id:
+      return [
+        {
+          id: '2',
+          symbol: 'WBTC',
+          name: 'Wrapped Bitcoin (Polygon)',
+          address: '0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6',
+          isEncrypted: false,
+          isDecrypted: false,
+          logo: 'https://cryptologos.cc/logos/wrapped-bitcoin-wbtc-logo.png',
+        },
+        {
+          id: '3',
+          symbol: 'USDC',
+          name: 'USD Coin (Polygon)',
+          address: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
+          isEncrypted: false,
+          isDecrypted: false,
+          logo: 'https://cryptologos.cc/logos/usd-coin-usdc-logo.png',
+        },
+        {
+          id: '4',
+          symbol: 'LINK',
+          name: 'Chainlink',
+          address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
+          isEncrypted: false,
+          isDecrypted: false,
+          logo: 'https://cryptologos.cc/logos/chainlink-link-logo.png',
+        }
+      ];
+    default:
+      return [
+        {
+          id: '2',
+          symbol: 'MATIC',
+          name: 'Polygon',
+          address: '0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0', // Ethereum Mainnet MATIC
+          isEncrypted: false,
+          isDecrypted: false,
+          logo: 'https://cryptologos.cc/logos/polygon-matic-logo.png',
+        },
+        {
+          id: '3',
+          symbol: 'LINK',
+          name: 'Chainlink',
+          address: '0x514910771AF9Ca656af840dff83E8264EcF986CA', // Ethereum Mainnet LINK
+          isEncrypted: false,
+          isDecrypted: false,
+          logo: 'https://cryptologos.cc/logos/chainlink-link-logo.png',
+        }
+      ];
   }
-];
+};
 
 // Helper function to get a price for a token (in a real app, you'd use an API)
 export const getTokenPrice = (symbol: string, chainId?: number): number => {
@@ -81,7 +185,9 @@ export const getTokenPrice = (symbol: string, chainId?: number): number => {
     'MATIC': 1.1,
     'LINK': 11.5,
     'WETH': 1940,
-    'UNI': 9.8
+    'UNI': 9.8,
+    'USDC': 1.0,
+    'WBTC': 49000
   };
   
   return prices[symbol] || 1;
