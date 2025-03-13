@@ -10,11 +10,12 @@ import {
   http,
   createStorage
 } from 'wagmi';
-import { mainnet, polygon, optimism, arbitrum } from 'wagmi/chains';
+import { mainnet, polygon, optimism, arbitrum, sepolia } from 'wagmi/chains';
 import { injected, walletConnect } from 'wagmi/connectors';
 import { WalletProvider } from "@/hooks/useWallet";
 import { TokenProvider } from "@/providers/TokenProvider";
 import { AnimatePresence } from "framer-motion";
+import { NetworkProvider } from "@/hooks/useNetwork";
 
 import Header from "./components/layout/Header";
 import Dashboard from "./pages/Dashboard";
@@ -23,9 +24,10 @@ import NotFound from "./pages/NotFound";
 
 // Set up wagmi config
 const config = createConfig({
-  chains: [mainnet, polygon, optimism, arbitrum],
+  chains: [mainnet, sepolia, polygon, optimism, arbitrum],
   transports: {
     [mainnet.id]: http(),
+    [sepolia.id]: http(),
     [polygon.id]: http(),
     [optimism.id]: http(),
     [arbitrum.id]: http(),
@@ -45,22 +47,24 @@ const App = () => (
   <WagmiProvider config={config}>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <WalletProvider>
-          <TokenProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Header />
-              <AnimatePresence mode="wait">
-                <Routes>
-                  <Route path="/" element={<Dashboard />} />
-                  <Route path="/transfer" element={<Transfer />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </AnimatePresence>
-            </BrowserRouter>
-          </TokenProvider>
-        </WalletProvider>
+        <NetworkProvider>
+          <WalletProvider>
+            <TokenProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <Header />
+                <AnimatePresence mode="wait">
+                  <Routes>
+                    <Route path="/" element={<Dashboard />} />
+                    <Route path="/transfer" element={<Transfer />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </AnimatePresence>
+              </BrowserRouter>
+            </TokenProvider>
+          </WalletProvider>
+        </NetworkProvider>
       </TooltipProvider>
     </QueryClientProvider>
   </WagmiProvider>
