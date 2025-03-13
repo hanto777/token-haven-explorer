@@ -1,12 +1,13 @@
 
 import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
-import { useAccount } from 'wagmi';
+import { useAccount, useConnect } from 'wagmi';
 import { toast } from 'sonner';
 
 interface WalletContextType {
   isConnected: boolean;
   address: string | undefined;
   isReady: boolean;
+  openConnectModal?: () => void;
 }
 
 const WalletContext = createContext<WalletContextType>({
@@ -18,6 +19,7 @@ const WalletContext = createContext<WalletContextType>({
 export const WalletProvider = ({ children }: { children: ReactNode }) => {
   const { isConnected, address } = useAccount();
   const [isReady, setIsReady] = useState(false);
+  const { openConnectModal } = useConnect();
   
   useEffect(() => {
     setIsReady(true);
@@ -35,6 +37,7 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
     isConnected,
     address,
     isReady,
+    openConnectModal
   };
   
   return (

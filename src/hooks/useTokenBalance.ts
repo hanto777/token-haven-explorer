@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useBalance, useToken, useReadContract } from 'wagmi';
 import { formatUnits } from 'viem';

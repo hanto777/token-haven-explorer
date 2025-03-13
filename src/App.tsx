@@ -13,7 +13,7 @@ import {
 import { mainnet, polygon, optimism, arbitrum } from 'wagmi/chains';
 import { injected, walletConnect } from 'wagmi/connectors';
 import { WalletProvider } from "@/hooks/useWallet";
-import { TokenProvider } from "@/hooks/useTokens";
+import { TokenProvider } from "@/providers/TokenProvider";
 import { AnimatePresence } from "framer-motion";
 
 import Header from "./components/layout/Header";
