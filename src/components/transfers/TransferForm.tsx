@@ -17,11 +17,13 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight, AlertCircle, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import TransactionStatus from "./TransactionStatus";
+import { type BaseError } from "wagmi";
 
 const TransferForm = () => {
   const [searchParams] = useSearchParams();
   const initialTokenId = searchParams.get('token');
-  const { tokens, sendToken, isLoading } = useTokens();
+  const { tokens, sendToken, transferState } = useTokens();
   const { address } = useAccount();
   
   const [selectedTokenId, setSelectedTokenId] = useState<string>("");
@@ -29,8 +31,9 @@ const TransferForm = () => {
   const [amount, setAmount] = useState<string>("");
   const [selectedToken, setSelectedToken] = useState<Token | null>(null);
   const [formError, setFormError] = useState<string>("");
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [isSuccess, setIsSuccess] = useState<boolean>(false);
+  
+  // Extract transfer state properties
+  const { hash, isPending, isError, error, isSuccess } = transferState;
 
   // Fetch real-time balance for the selected token
   const tokenBalance = useTokenBalance({
@@ -57,6 +60,17 @@ const TransferForm = () => {
     const token = tokens.find(t => t.id === selectedTokenId);
     setSelectedToken(token || null);
   }, [selectedTokenId, tokens]);
+  
+  // Reset the form when a transfer is successful
+  useEffect(() => {
+    if (isSuccess) {
+      // Reset form after 3 seconds
+      setTimeout(() => {
+        setAmount("");
+        setRecipient("");
+      }, 3000);
+    }
+  }, [isSuccess]);
   
   const validateForm = (): boolean => {
     if (!selectedToken) {
@@ -91,25 +105,11 @@ const TransferForm = () => {
     
     if (!validateForm()) return;
     
-    setIsSubmitting(true);
-    
     try {
-      const success = await sendToken(selectedTokenId, recipient, amount);
-      
-      if (success) {
-        setIsSuccess(true);
-        // Reset form after 3 seconds
-        setTimeout(() => {
-          setIsSuccess(false);
-          setAmount("");
-          setRecipient("");
-        }, 3000);
-      }
+      await sendToken(selectedTokenId, recipient, amount);
     } catch (error) {
       console.error("Transfer error:", error);
       setFormError("Transfer failed. Please try again.");
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -140,10 +140,10 @@ const TransferForm = () => {
               <p className="text-muted-foreground">
                 {amount} {selectedToken?.symbol} has been sent to the recipient
               </p>
+              <TransactionStatus hash={hash} isConfirmed={true} />
               <Button
                 variant="outline"
                 onClick={() => {
-                  setIsSuccess(false);
                   setAmount("");
                   setRecipient("");
                 }}
@@ -166,7 +166,7 @@ const TransferForm = () => {
                 <Select
                   value={selectedTokenId}
                   onValueChange={setSelectedTokenId}
-                  disabled={isLoading || isSubmitting || filteredTokens.length === 0}
+                  disabled={isPending || filteredTokens.length === 0}
                 >
                   <SelectTrigger id="token" className="w-full">
                     <SelectValue placeholder="Select token" />
@@ -206,7 +206,7 @@ const TransferForm = () => {
                   placeholder="0x..."
                   value={recipient}
                   onChange={e => setRecipient(e.target.value)}
-                  disabled={isSubmitting}
+                  disabled={isPending}
                 />
               </div>
               
@@ -226,7 +226,7 @@ const TransferForm = () => {
                     placeholder="0.0"
                     value={amount}
                     onChange={e => setAmount(e.target.value)}
-                    disabled={isSubmitting}
+                    disabled={isPending}
                     className="pr-16"
                     step="any"
                   />
@@ -246,7 +246,7 @@ const TransferForm = () => {
                     size="sm"
                     className="text-xs h-auto py-1"
                     onClick={() => setAmount(displayBalance)}
-                    disabled={isSubmitting}
+                    disabled={isPending}
                   >
                     Use Max
                   </Button>
@@ -260,13 +260,25 @@ const TransferForm = () => {
                 </div>
               )}
               
+              {isError && error && (
+                <div className="flex items-center gap-2 text-sm text-destructive rounded-md p-2 bg-destructive/10">
+                  <AlertCircle className="h-4 w-4" />
+                  <p>{(error as BaseError).shortMessage || "Transfer failed"}</p>
+                </div>
+              )}
+              
+              <TransactionStatus hash={hash} isConfirmed={false} />
+              
               <Button
                 type="submit"
-                disabled={isSubmitting || !selectedToken}
+                disabled={isPending || !selectedToken}
                 className="w-full group"
               >
-                {isSubmitting ? (
-                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-background border-t-transparent" />
+                {isPending ? (
+                  <>
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-background border-t-transparent mr-2" />
+                    Confirming Transaction...
+                  </>
                 ) : (
                   <>
                     Send {selectedToken?.symbol}
