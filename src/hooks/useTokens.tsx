@@ -2,7 +2,7 @@
 import { useContext } from 'react';
 import TokenContext from '@/contexts/TokenContext';
 import { Token, TokenContextType } from '@/types/tokenTypes';
-import { useWriteContract } from 'wagmi';
+import { useWriteContract, useAccount, useChainId } from 'wagmi';
 import { toast } from 'sonner';
 import { erc20Abi } from '@/utils/erc20Abi';
 import { parseUnits } from 'viem';
@@ -12,6 +12,9 @@ export { default as TokenProvider } from '@/providers/TokenProvider';
 
 export const useTokens = () => {
   const context = useContext(TokenContext);
+  const { address } = useAccount();
+  const chainId = useChainId();
+  
   const { 
     data: hash, 
     isPending,
@@ -46,6 +49,9 @@ export const useTokens = () => {
         abi: erc20Abi,
         functionName: 'transfer',
         args: [to as `0x${string}`, parsedAmount],
+        // Add the required chain and account properties
+        account: address,
+        chain: { id: chainId }
       });
       
       // We return true to indicate the transaction was initiated
