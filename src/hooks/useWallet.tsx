@@ -19,7 +19,21 @@ const WalletContext = createContext<WalletContextType>({
 export const WalletProvider = ({ children }: { children: ReactNode }) => {
   const { isConnected, address } = useAccount();
   const [isReady, setIsReady] = useState(false);
-  const { openConnectModal } = useConnect();
+  const { connectAsync, connectors } = useConnect();
+  
+  // Create a function to open the connect modal
+  const openConnectModal = async () => {
+    try {
+      // Find the first available connector (usually injected like MetaMask)
+      const connector = connectors[0];
+      if (connector) {
+        await connectAsync({ connector });
+      }
+    } catch (error) {
+      console.error('Failed to connect wallet:', error);
+      toast.error('Failed to connect wallet');
+    }
+  };
   
   useEffect(() => {
     setIsReady(true);
