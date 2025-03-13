@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useConnect, useAccount, useDisconnect } from 'wagmi';
-import { InjectedConnector } from 'wagmi/connectors/injected';
+import { injected } from 'wagmi/connectors';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,16 +16,14 @@ import { Wallet, LogOut, ChevronDown } from "lucide-react";
 
 const ConnectWallet = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const { connect } = useConnect({
-    connector: new InjectedConnector(),
-  });
+  const { connectAsync } = useConnect();
   const { isConnected, address } = useAccount();
-  const { disconnect } = useDisconnect();
+  const { disconnectAsync } = useDisconnect();
 
   const handleConnect = async () => {
     try {
       setIsLoading(true);
-      await connect();
+      await connectAsync({ connector: injected() });
     } catch (error) {
       console.error('Failed to connect wallet:', error);
     } finally {
@@ -84,7 +82,7 @@ const ConnectWallet = () => {
               <DropdownMenuSeparator />
               <DropdownMenuItem 
                 className="flex cursor-pointer items-center gap-2 text-destructive focus:text-destructive"
-                onClick={() => disconnect()}
+                onClick={() => disconnectAsync()}
               >
                 <LogOut className="h-4 w-4" />
                 Disconnect
