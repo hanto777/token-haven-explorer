@@ -1,10 +1,11 @@
+
 import { createContext, useContext, ReactNode, useState, useEffect } from "react";
-import { useConfig, useChainId, useSwitchChain } from "wagmi";
+import { useConfig, useChainId, useSwitchChain, useAccount } from "wagmi";
 import { mainnet, sepolia, polygon, optimism, arbitrum } from "wagmi/chains";
 import { toast } from "sonner";
 
-// Use type import for Chain
-import type { Chain } from "wagmi";
+// Import Chain as a type specifically
+import type { Chain } from "wagmi/chains";
 
 export const SUPPORTED_CHAINS = [
   mainnet,

@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useConfig, useChainId, useSwitchChain } from "wagmi";
 import { mainnet, sepolia, polygon, optimism, arbitrum } from "wagmi/chains";
@@ -11,8 +12,8 @@ import {
 import { useNetwork } from "@/hooks/useNetwork";
 import { toast } from "sonner";
 
-// Use type import for Chain
-import type { Chain } from "wagmi";
+// Import Chain as a type specifically
+import type { Chain } from "wagmi/chains";
 
 const SUPPORTED_CHAINS = [
   mainnet,
@@ -23,7 +24,7 @@ const SUPPORTED_CHAINS = [
 ];
 
 const NetworkSwitcher = () => {
-  const { setChainId } = useNetwork();
+  const { switchNetwork } = useNetwork();
   const config = useConfig();
   const chainId = useChainId();
   const [mounted, setMounted] = useState(false);
@@ -35,12 +36,11 @@ const NetworkSwitcher = () => {
 
   const handleChange = (value: string) => {
     const chainId = parseInt(value);
-    setChainId(chainId);
-
+    
     const chain = SUPPORTED_CHAINS.find((chain) => chain.id === chainId);
 
-    if (chain && switchChain) {
-      switchChain({ chainId: chain.id });
+    if (chain && switchNetwork) {
+      switchNetwork(chain.id);
       toast.success(`Switched to ${chain.name}`);
     } else {
       toast.error("Chain not found");
