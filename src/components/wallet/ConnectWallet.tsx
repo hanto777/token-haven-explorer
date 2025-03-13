@@ -12,14 +12,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { motion, AnimatePresence } from "framer-motion";
-import { Wallet, LogOut, ChevronDown } from "lucide-react";
+import { Wallet, LogOut, ChevronDown, UsersRound } from "lucide-react";
 import NetworkSwitcher from "./NetworkSwitcher";
+import { useWallet } from "@/hooks/useWallet";
 
 const ConnectWallet = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { connectAsync } = useConnect();
   const { isConnected, address } = useAccount();
   const { disconnectAsync } = useDisconnect();
+  const { switchAccount } = useWallet();
 
   const handleConnect = async () => {
     try {
@@ -84,6 +86,15 @@ const ConnectWallet = () => {
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                
+                <DropdownMenuItem 
+                  className="flex cursor-pointer items-center gap-2"
+                  onClick={() => switchAccount && switchAccount()}
+                >
+                  <UsersRound className="h-4 w-4" />
+                  Switch Account
+                </DropdownMenuItem>
+                
                 <DropdownMenuItem 
                   className="flex cursor-pointer items-center gap-2 text-destructive focus:text-destructive"
                   onClick={() => disconnectAsync()}

@@ -5,8 +5,8 @@ import {
   useConfig, 
   useChainId, 
   useSwitchChain,
-  Chain 
 } from 'wagmi';
+import type { Chain } from 'wagmi';
 import { toast } from 'sonner';
 import { mainnet, sepolia, polygon } from 'wagmi/chains';
 

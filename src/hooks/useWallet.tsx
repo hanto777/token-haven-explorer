@@ -1,6 +1,6 @@
 
 import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
-import { useAccount, useConnect } from 'wagmi';
+import { useAccount, useConnect, useDisconnect } from 'wagmi';
 import { toast } from 'sonner';
 
 interface WalletContextType {
@@ -8,6 +8,7 @@ interface WalletContextType {
   address: string | undefined;
   isReady: boolean;
   openConnectModal?: () => void;
+  switchAccount?: () => void;
 }
 
 const WalletContext = createContext<WalletContextType>({
@@ -20,6 +21,7 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
   const { isConnected, address } = useAccount();
   const [isReady, setIsReady] = useState(false);
   const { connectAsync, connectors } = useConnect();
+  const { disconnectAsync } = useDisconnect();
   
   // Create a function to open the connect modal
   const openConnectModal = async () => {
@@ -32,6 +34,27 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       console.error('Failed to connect wallet:', error);
       toast.error('Failed to connect wallet');
+    }
+  };
+
+  // Add function to switch accounts
+  const switchAccount = async () => {
+    try {
+      // First disconnect the current account
+      await disconnectAsync();
+      
+      // Short delay to ensure disconnect completes
+      setTimeout(async () => {
+        // Then reconnect - this will usually prompt the wallet to show account selection
+        const connector = connectors[0];
+        if (connector) {
+          await connectAsync({ connector });
+          toast.success('Please select an account in your wallet');
+        }
+      }, 500);
+    } catch (error) {
+      console.error('Failed to switch accounts:', error);
+      toast.error('Failed to switch accounts');
     }
   };
   
@@ -51,7 +74,8 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
     isConnected,
     address,
     isReady,
-    openConnectModal
+    openConnectModal,
+    switchAccount
   };
   
   return (

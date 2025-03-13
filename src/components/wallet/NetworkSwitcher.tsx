@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
-import { Chain } from "wagmi";
+import type { Chain } from "wagmi";
 
 const NetworkSwitcher = () => {
   const { isConnected } = useWallet();
