@@ -1,25 +1,29 @@
 
-import { useState, useEffect } from "react";
-import { useTokens } from "@/hooks/useTokens";
-import { useTokenBalance } from "@/hooks/useTokenBalance";
+import { useState } from "react";
 import { useAccount, useChainId } from "wagmi";
+import { 
+  useSendTransaction, 
+  useWaitForTransactionReceipt,
+  type BaseError
+} from "wagmi";
+import { parseEther } from "viem";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight, AlertCircle, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTokenBalance } from "@/hooks/useTokenBalance";
 import { getNativeToken } from "@/utils/tokenUtils";
+import { toast } from "sonner";
 
 const NativeTransferForm = () => {
-  const { sendToken, isLoading } = useTokens();
   const { address } = useAccount();
   const chainId = useChainId();
   
   const [recipient, setRecipient] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
   const [formError, setFormError] = useState<string>("");
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
   
   // Get native token data
@@ -31,6 +35,47 @@ const NativeTransferForm = () => {
     tokenAddress: 'native',
     enabled: !!address
   });
+
+  // Wagmi hooks for transactions
+  const { 
+    data: hash,
+    error,
+    isPending,
+    sendTransaction 
+  } = useSendTransaction();
+
+  const { 
+    isLoading: isConfirming, 
+    isSuccess: isConfirmed 
+  } = useWaitForTransactionReceipt({ 
+    hash, 
+  });
+  
+  // Show transaction result in toast when confirmed
+  React.useEffect(() => {
+    if (isConfirmed && hash) {
+      setIsSuccess(true);
+      toast.success("Transfer successful", {
+        description: `Transaction confirmed: ${hash.slice(0, 10)}...${hash.slice(-8)}`
+      });
+      // Reset form after success
+      setTimeout(() => {
+        setIsSuccess(false);
+        setAmount("");
+        setRecipient("");
+      }, 3000);
+    }
+  }, [isConfirmed, hash]);
+
+  // Show error in toast
+  React.useEffect(() => {
+    if (error) {
+      const errorMessage = (error as BaseError).shortMessage || error.message;
+      toast.error("Transfer failed", {
+        description: errorMessage
+      });
+    }
+  }, [error]);
   
   const validateForm = (): boolean => {
     if (!recipient || !/^0x[a-fA-F0-9]{40}$/.test(recipient)) {
@@ -57,26 +102,14 @@ const NativeTransferForm = () => {
     
     if (!validateForm()) return;
     
-    setIsSubmitting(true);
-    
     try {
-      // Always use ID "1" for native token
-      const success = await sendToken("1", recipient, amount);
-      
-      if (success) {
-        setIsSuccess(true);
-        // Reset form after 3 seconds
-        setTimeout(() => {
-          setIsSuccess(false);
-          setAmount("");
-          setRecipient("");
-        }, 3000);
-      }
+      sendTransaction({ 
+        to: recipient as `0x${string}`, 
+        value: parseEther(amount) 
+      });
     } catch (error) {
       console.error("Transfer error:", error);
       setFormError("Transfer failed. Please try again.");
-    } finally {
-      setIsSubmitting(false);
     }
   };
   
@@ -99,6 +132,16 @@ const NativeTransferForm = () => {
               <p className="text-muted-foreground">
                 {amount} {tokenBalance.symbol} has been sent to the recipient
               </p>
+              {hash && (
+                <a 
+                  href={`https://etherscan.io/tx/${hash}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-sm text-primary hover:underline"
+                >
+                  View transaction
+                </a>
+              )}
               <Button
                 variant="outline"
                 onClick={() => {
@@ -157,7 +200,7 @@ const NativeTransferForm = () => {
                   placeholder="0x..."
                   value={recipient}
                   onChange={e => setRecipient(e.target.value)}
-                  disabled={isSubmitting}
+                  disabled={isPending || isConfirming}
                 />
               </div>
               
@@ -170,7 +213,7 @@ const NativeTransferForm = () => {
                     placeholder="0.0"
                     value={amount}
                     onChange={e => setAmount(e.target.value)}
-                    disabled={isSubmitting}
+                    disabled={isPending || isConfirming}
                     className="pr-16"
                     step="any"
                   />
@@ -187,7 +230,7 @@ const NativeTransferForm = () => {
                   size="sm"
                   className="text-xs h-auto py-1"
                   onClick={() => setAmount(tokenBalance.balance)}
-                  disabled={isSubmitting || tokenBalance.isLoading}
+                  disabled={isPending || isConfirming || tokenBalance.isLoading}
                 >
                   Use Max
                 </Button>
@@ -199,14 +242,34 @@ const NativeTransferForm = () => {
                   <p>{formError}</p>
                 </div>
               )}
+
+              {error && (
+                <div className="flex items-center gap-2 text-sm text-destructive rounded-md p-2 bg-destructive/10">
+                  <AlertCircle className="h-4 w-4" />
+                  <p>{(error as BaseError).shortMessage || error.message}</p>
+                </div>
+              )}
+              
+              {hash && !isConfirmed && (
+                <div className="flex items-center gap-2 text-sm text-primary rounded-md p-2 bg-primary/10">
+                  <p>
+                    Transaction submitted: {hash.slice(0, 6)}...{hash.slice(-4)}
+                  </p>
+                </div>
+              )}
               
               <Button
                 type="submit"
-                disabled={isSubmitting || tokenBalance.isLoading}
+                disabled={isPending || isConfirming || tokenBalance.isLoading}
                 className="w-full group"
               >
-                {isSubmitting ? (
-                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-background border-t-transparent" />
+                {isPending ? (
+                  <>Preparing Transaction...</>
+                ) : isConfirming ? (
+                  <>
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-background border-t-transparent mr-2" />
+                    Confirming Transaction...
+                  </>
                 ) : (
                   <>
                     Send {tokenBalance.symbol}
