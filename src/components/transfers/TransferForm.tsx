@@ -2,6 +2,8 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useTokens, Token } from "@/hooks/useTokens";
+import { useTokenBalance } from "@/hooks/useTokenBalance";
+import { useAccount } from "wagmi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,6 +22,7 @@ const TransferForm = () => {
   const [searchParams] = useSearchParams();
   const initialTokenId = searchParams.get('token');
   const { tokens, sendToken, isLoading } = useTokens();
+  const { address } = useAccount();
   
   const [selectedTokenId, setSelectedTokenId] = useState<string>("");
   const [recipient, setRecipient] = useState<string>("");
@@ -28,6 +31,13 @@ const TransferForm = () => {
   const [formError, setFormError] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
+
+  // Fetch real-time balance for the selected token
+  const tokenBalance = useTokenBalance({
+    address: address,
+    tokenAddress: selectedToken?.address || 'native',
+    enabled: !!address && !!selectedToken
+  });
   
   // Set initial token selection from URL params
   useEffect(() => {
@@ -64,8 +74,11 @@ const TransferForm = () => {
       return false;
     }
     
-    if (selectedToken && Number(amount) > Number(selectedToken.balance)) {
-      setFormError(`Insufficient balance. You have ${selectedToken.balance} ${selectedToken.symbol}`);
+    // Use the real-time balance from useTokenBalance if available
+    const currentBalance = !tokenBalance.isLoading ? tokenBalance.balance : selectedToken.balance;
+    
+    if (Number(amount) > Number(currentBalance)) {
+      setFormError(`Insufficient balance. You have ${currentBalance} ${selectedToken.symbol}`);
       return false;
     }
     
@@ -99,6 +112,11 @@ const TransferForm = () => {
       setIsSubmitting(false);
     }
   };
+
+  // Get the current balance to display - use tokenBalance hook data if available
+  const displayBalance = !tokenBalance.isLoading 
+    ? tokenBalance.balance 
+    : selectedToken?.balance || '0';
   
   return (
     <Card className="w-full max-w-md mx-auto border bg-card/60 backdrop-blur-xs">
@@ -169,7 +187,7 @@ const TransferForm = () => {
                             </div>
                             <span>{token.symbol}</span>
                             <span className="text-muted-foreground text-xs">
-                              {token.balance}
+                              {token.id === selectedTokenId ? displayBalance : token.balance}
                             </span>
                           </div>
                         </SelectItem>
@@ -194,7 +212,7 @@ const TransferForm = () => {
                   <Label htmlFor="amount">Amount</Label>
                   {selectedToken && (
                     <span className="text-xs text-muted-foreground">
-                      Balance: {selectedToken.balance} {selectedToken.symbol}
+                      Balance: {displayBalance} {selectedToken.symbol}
                     </span>
                   )}
                 </div>
@@ -224,7 +242,7 @@ const TransferForm = () => {
                     variant="ghost"
                     size="sm"
                     className="text-xs h-auto py-1"
-                    onClick={() => setAmount(selectedToken.balance)}
+                    onClick={() => setAmount(displayBalance)}
                     disabled={isSubmitting}
                   >
                     Use Max
