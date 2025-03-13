@@ -1,6 +1,8 @@
+
 import { useEffect, useState } from 'react';
-import { useBalance, useToken, useReadContract } from 'wagmi';
+import { useBalance, useToken, useReadContract, useChainId } from 'wagmi';
 import { formatUnits } from 'viem';
+import { mainnet, sepolia, polygon } from 'wagmi/chains';
 
 // ERC-20 ABI for the balanceOf function
 const erc20ABI = [
@@ -34,6 +36,7 @@ interface UseTokenBalanceProps {
 }
 
 export function useTokenBalance({ address, tokenAddress, enabled = true }: UseTokenBalanceProps) {
+  const chainId = useChainId();
   const [balance, setBalance] = useState('0');
   const [value, setValue] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -83,9 +86,16 @@ export function useTokenBalance({ address, tokenAddress, enabled = true }: UseTo
         const formattedBalance = nativeBalanceData.data.formatted;
         setBalance(formattedBalance);
         
-        // In a real application, you would get the token price from an API
-        const ethPrice = 1940; // Mock ETH price in USD
-        setValue(parseFloat(formattedBalance) * ethPrice);
+        // Get the appropriate token price based on the current network
+        let nativePrice = 1940; // Default ETH price
+        let nativeSymbol = 'ETH';
+        
+        if (chainId === polygon.id) {
+          nativePrice = 1.1; // MATIC price
+          nativeSymbol = 'MATIC';
+        }
+        
+        setValue(parseFloat(formattedBalance) * nativePrice);
       }
     } 
     // For ERC20 tokens
@@ -116,6 +126,7 @@ export function useTokenBalance({ address, tokenAddress, enabled = true }: UseTo
     }
   }, [
     isNativeToken,
+    chainId,
     nativeBalanceData.data, 
     nativeBalanceData.isLoading, 
     nativeBalanceData.error,
@@ -127,13 +138,27 @@ export function useTokenBalance({ address, tokenAddress, enabled = true }: UseTo
     tokenData.error
   ]);
   
+  // Get the appropriate native token symbol based on the chain
+  const getNativeSymbol = () => {
+    if (chainId === polygon.id) return 'MATIC';
+    return 'ETH'; // Default for Ethereum networks (mainnet, sepolia, etc.)
+  };
+  
+  // Get the appropriate native token name based on the chain
+  const getNativeName = () => {
+    if (chainId === mainnet.id) return 'Ethereum';
+    if (chainId === sepolia.id) return 'Sepolia ETH';
+    if (chainId === polygon.id) return 'Polygon';
+    return 'Ethereum'; // Default
+  };
+  
   return {
     balance,
     value,
     isLoading,
     error,
-    symbol: isNativeToken ? 'ETH' : tokenData.data?.symbol,
-    name: isNativeToken ? 'Ethereum' : tokenData.data?.name,
+    symbol: isNativeToken ? getNativeSymbol() : tokenData.data?.symbol,
+    name: isNativeToken ? getNativeName() : tokenData.data?.name,
     decimals: isNativeToken ? 18 : tokenData.data?.decimals
   };
 }
