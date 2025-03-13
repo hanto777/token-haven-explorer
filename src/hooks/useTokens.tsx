@@ -3,6 +3,7 @@ import { useContext } from 'react';
 import TokenContext from '@/contexts/TokenContext';
 import { Token, TokenContextType } from '@/types/tokenTypes';
 import { useWriteContract, useAccount, useChainId } from 'wagmi';
+import { mainnet, sepolia, polygon, optimism, arbitrum } from 'wagmi/chains';
 import { toast } from 'sonner';
 import { erc20Abi } from '@/utils/erc20Abi';
 import { parseUnits } from 'viem';
@@ -43,15 +44,38 @@ export const useTokens = () => {
       // Convert the amount to the correct decimal representation
       const parsedAmount = parseUnits(amount, decimals);
       
+      // Get the appropriate chain object based on chainId
+      let chain;
+      switch (chainId) {
+        case mainnet.id:
+          chain = mainnet;
+          break;
+        case sepolia.id:
+          chain = sepolia;
+          break;
+        case polygon.id:
+          chain = polygon;
+          break;
+        case optimism.id:
+          chain = optimism;
+          break;
+        case arbitrum.id:
+          chain = arbitrum;
+          break;
+        default:
+          // Default to mainnet if chainId is not recognized
+          chain = mainnet;
+      }
+      
       // Execute the ERC20 transfer transaction
       writeContract({
         address: token.address as `0x${string}`,
         abi: erc20Abi,
         functionName: 'transfer',
         args: [to as `0x${string}`, parsedAmount],
-        // Add the required chain and account properties
+        // Use the full chain object instead of just the ID
         account: address,
-        chain: { id: chainId }
+        chain: chain
       });
       
       // We return true to indicate the transaction was initiated
