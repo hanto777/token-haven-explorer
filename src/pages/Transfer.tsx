@@ -2,10 +2,11 @@
 import PageTransition from "@/components/layout/PageTransition";
 import TransferForm from "@/components/transfers/TransferForm";
 import NativeTransferForm from "@/components/transfers/NativeTransferForm";
+import ConfidentialTransferForm from "@/components/transfers/ConfidentialTransferForm";
 import { useWallet } from "@/hooks/useWallet";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { WalletIcon, CoinsIcon, BanknoteIcon } from "lucide-react";
+import { WalletIcon, CoinsIcon, BanknoteIcon, LockIcon } from "lucide-react";
 import { motion } from "framer-motion";
 import { useSearchParams, useNavigate } from "react-router-dom";
 
@@ -22,6 +23,8 @@ const Transfer = () => {
       navigate('/transfer?tab=native&token=1', { replace: true });
     } else if (value === 'tokens') {
       navigate('/transfer?tab=tokens', { replace: true });
+    } else if (value === 'confidential') {
+      navigate('/transfer?tab=confidential', { replace: true });
     } else {
       navigate(`/transfer?tab=${value}`, { replace: true });
     }
@@ -48,7 +51,7 @@ const Transfer = () => {
         {isConnected ? (
           <div className="mt-8 max-w-md mx-auto">
             <Tabs defaultValue={initialTab} onValueChange={handleTabChange} className="w-full">
-              <TabsList className="grid grid-cols-2 mb-6">
+              <TabsList className="grid grid-cols-3 mb-6">
                 <TabsTrigger value="native" className="flex items-center gap-2">
                   <BanknoteIcon className="h-4 w-4" />
                   <span>Send Balance</span>
@@ -57,12 +60,19 @@ const Transfer = () => {
                   <CoinsIcon className="h-4 w-4" />
                   <span>Send Tokens</span>
                 </TabsTrigger>
+                <TabsTrigger value="confidential" className="flex items-center gap-2">
+                  <LockIcon className="h-4 w-4" />
+                  <span>Confidential</span>
+                </TabsTrigger>
               </TabsList>
               <TabsContent value="native">
                 <NativeTransferForm />
               </TabsContent>
               <TabsContent value="tokens">
                 <TransferForm />
+              </TabsContent>
+              <TabsContent value="confidential">
+                <ConfidentialTransferForm />
               </TabsContent>
             </Tabs>
           </div>
