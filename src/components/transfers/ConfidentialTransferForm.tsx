@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useTokens } from "@/hooks/useTokens";
 import { useAccount } from "wagmi";
@@ -25,7 +24,7 @@ import { useToast } from "@/components/ui/use-toast";
 const ConfidentialTransferForm = () => {
   const { tokens, transferState } = useTokens();
   const { address } = useAccount();
-  const { network, switchNetwork } = useNetwork();
+  const { currentChain, switchNetwork } = useNetwork();
   const { toast } = useToast();
   
   const [selectedTokenId, setSelectedTokenId] = useState<string>("");
@@ -40,7 +39,7 @@ const ConfidentialTransferForm = () => {
   const confidentialTokens = tokens.filter(token => token.isConfidential);
   
   // Check if user is on the right network (Sepolia)
-  const isOnSepolia = network?.id === sepolia.id;
+  const isOnSepolia = currentChain?.id === sepolia.id;
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
