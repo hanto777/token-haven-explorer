@@ -1,6 +1,6 @@
 
 import { mainnet, sepolia, polygon, optimism, arbitrum } from 'wagmi/chains';
-import { CONFIDENTIAL_TOKEN_ADDRESS } from './confidentialErc20Abi';
+import { PAYMENT_TOKEN_ADDRESS, AUCTION_TOKEN_ADDRESS } from './confidentialErc20Abi';
 
 // Get the default native token based on chainId
 export const getNativeToken = (chainId: number) => {
@@ -104,12 +104,23 @@ export const getDefaultTokens = (chainId: number) => {
           id: '4',
           symbol: 'cUSDC',
           name: 'Confidential USD Coin',
-          address: CONFIDENTIAL_TOKEN_ADDRESS,
+          address: PAYMENT_TOKEN_ADDRESS,
           decimals: 6,
           isEncrypted: true,
           isDecrypted: false,
           isConfidential: true,
           logo: 'https://cryptologos.cc/logos/usd-coin-usdc-logo.png',
+        },
+        {
+          id: '4',
+          symbol: 'cZAMA',
+          name: 'Confidential Z Token',
+          address: AUCTION_TOKEN_ADDRESS,
+          decimals: 6,
+          isEncrypted: true,
+          isDecrypted: false,
+          isConfidential: true,
+          logo: 'https://cryptologos.cc/logos/zcoin-xzc-logo.png',
         }
       ];
     case polygon.id:
