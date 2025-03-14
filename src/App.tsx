@@ -20,6 +20,7 @@ import { NetworkProvider } from "@/hooks/useNetwork";
 import Header from "./components/layout/Header";
 import Dashboard from "./pages/Dashboard";
 import Transfer from "./pages/Transfer";
+import Swap from "./pages/Swap";
 import NotFound from "./pages/NotFound";
 
 // Set up wagmi config
@@ -58,6 +59,7 @@ const App = () => (
                   <Routes>
                     <Route path="/" element={<Dashboard />} />
                     <Route path="/transfer" element={<Transfer />} />
+                    <Route path="/swap" element={<Swap />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </AnimatePresence>
