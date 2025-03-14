@@ -4,20 +4,15 @@ import { useSearchParams } from "react-router-dom";
 import { useTokens, Token } from "@/hooks/useTokens";
 import { useTokenBalance } from "@/hooks/useTokenBalance";
 import { useAccount } from "wagmi";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowRight, AlertCircle, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import TransactionStatus from "./TransactionStatus";
+import TransferFormError from "./TransferFormError";
+import TokenSelectField from "./TokenSelectField";
+import RecipientInputField from "./RecipientInputField";
+import AmountInputField from "./AmountInputField";
+import TransferButton from "./TransferButton";
+import TransferSuccessMessage from "./TransferSuccessMessage";
 import { type BaseError } from "wagmi";
 
 const TransferForm = () => {
@@ -121,37 +116,22 @@ const TransferForm = () => {
   // Filter out the native token (id=1) from the tokens list
   const filteredTokens = tokens.filter(token => token.id !== '1');
   
+  const handleReset = () => {
+    setAmount("");
+    setRecipient("");
+  };
+  
   return (
     <Card className="w-full border bg-card/60 backdrop-blur-xs">
       <CardContent className="p-6">
         <AnimatePresence mode="wait">
           {isSuccess ? (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.2 }}
-              className="flex flex-col items-center justify-center py-10 text-center space-y-4"
-            >
-              <div className="h-16 w-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                <CheckCircle2 className="h-8 w-8 text-green-600 dark:text-green-400" />
-              </div>
-              <h3 className="text-xl font-medium">Transfer Successful</h3>
-              <p className="text-muted-foreground">
-                {amount} {selectedToken?.symbol} has been sent to the recipient
-              </p>
-              <TransactionStatus hash={hash} isConfirmed={true} />
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setAmount("");
-                  setRecipient("");
-                }}
-                className="mt-4"
-              >
-                Make Another Transfer
-              </Button>
-            </motion.div>
+            <TransferSuccessMessage
+              amount={amount}
+              symbol={selectedToken?.symbol || ""}
+              hash={hash}
+              onReset={handleReset}
+            />
           ) : (
             <motion.form
               initial={{ opacity: 0 }}
@@ -161,131 +141,40 @@ const TransferForm = () => {
               onSubmit={handleSubmit}
               className="space-y-6"
             >
-              <div className="space-y-2">
-                <Label htmlFor="token">Token</Label>
-                <Select
-                  value={selectedTokenId}
-                  onValueChange={setSelectedTokenId}
-                  disabled={isPending || filteredTokens.length === 0}
-                >
-                  <SelectTrigger id="token" className="w-full">
-                    <SelectValue placeholder="Select token" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {filteredTokens
-                      .filter(token => !token.isEncrypted || token.isDecrypted)
-                      .map(token => (
-                        <SelectItem key={token.id} value={token.id}>
-                          <div className="flex items-center gap-2">
-                            <div className="w-5 h-5 rounded-full overflow-hidden bg-muted flex items-center justify-center">
-                              {token.logo ? (
-                                <img 
-                                  src={token.logo} 
-                                  alt={token.name} 
-                                  className="w-4 h-4 object-contain"
-                                />
-                              ) : (
-                                <span className="text-xs">{token.symbol.slice(0, 2)}</span>
-                              )}
-                            </div>
-                            <span>{token.symbol}</span>
-                            <span className="text-muted-foreground text-xs">
-                              {token.id === selectedTokenId ? displayBalance : token.balance}
-                            </span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <TokenSelectField
+                selectedTokenId={selectedTokenId}
+                setSelectedTokenId={setSelectedTokenId}
+                tokens={filteredTokens}
+                displayBalance={displayBalance}
+                isPending={isPending}
+              />
               
-              <div className="space-y-2">
-                <Label htmlFor="recipient">Recipient Address</Label>
-                <Input
-                  id="recipient"
-                  placeholder="0x..."
-                  value={recipient}
-                  onChange={e => setRecipient(e.target.value)}
-                  disabled={isPending}
-                />
-              </div>
+              <RecipientInputField
+                recipient={recipient}
+                setRecipient={setRecipient}
+                isPending={isPending}
+              />
               
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <Label htmlFor="amount">Amount</Label>
-                  {selectedToken && (
-                    <span className="text-xs text-muted-foreground">
-                      Balance: {displayBalance} {selectedToken.symbol}
-                    </span>
-                  )}
-                </div>
-                <div className="relative">
-                  <Input
-                    id="amount"
-                    type="number"
-                    placeholder="0.0"
-                    value={amount}
-                    onChange={e => setAmount(e.target.value)}
-                    disabled={isPending}
-                    className="pr-16"
-                    step="any"
-                  />
-                  {selectedToken && (
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                      <span className="text-muted-foreground">
-                        {selectedToken.symbol}
-                      </span>
-                    </div>
-                  )}
-                </div>
-                
-                {selectedToken && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="text-xs h-auto py-1"
-                    onClick={() => setAmount(displayBalance)}
-                    disabled={isPending}
-                  >
-                    Use Max
-                  </Button>
-                )}
-              </div>
+              <AmountInputField
+                amount={amount}
+                setAmount={setAmount}
+                selectedToken={selectedToken}
+                displayBalance={displayBalance}
+                isPending={isPending}
+              />
               
-              {formError && (
-                <div className="flex items-center gap-2 text-sm text-destructive rounded-md p-2 bg-destructive/10">
-                  <AlertCircle className="h-4 w-4" />
-                  <p>{formError}</p>
-                </div>
-              )}
+              {formError && <TransferFormError message={formError} />}
               
               {isError && error && (
-                <div className="flex items-center gap-2 text-sm text-destructive rounded-md p-2 bg-destructive/10">
-                  <AlertCircle className="h-4 w-4" />
-                  <p>{(error as BaseError).shortMessage || "Transfer failed"}</p>
-                </div>
+                <TransferFormError message={(error as BaseError).shortMessage || "Transfer failed"} />
               )}
               
               <TransactionStatus hash={hash} isConfirmed={false} />
               
-              <Button
-                type="submit"
-                disabled={isPending || !selectedToken}
-                className="w-full group"
-              >
-                {isPending ? (
-                  <>
-                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-background border-t-transparent mr-2" />
-                    Confirming Transaction...
-                  </>
-                ) : (
-                  <>
-                    Send {selectedToken?.symbol}
-                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                  </>
-                )}
-              </Button>
+              <TransferButton
+                isPending={isPending}
+                selectedToken={selectedToken}
+              />
             </motion.form>
           )}
         </AnimatePresence>
