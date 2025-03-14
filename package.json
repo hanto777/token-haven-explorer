@@ -4,8 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "dev": "node scripts/dev.js",
+    "dev-mocked": "MOCKED=true node scripts/dev.js",
+    "build": "tsc && vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -41,12 +42,16 @@
     "@radix-ui/react-tooltip": "^1.1.4",
     "@tanstack/react-query": "^5.56.2",
     "@wagmi/core": "^2.16.5",
+    "bigint-buffer": "^1.1.5",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.3.0",
+    "ethers": "^6.13.5",
+    "fhevmjs": "^0.6.2",
     "framer-motion": "^12.5.0",
+    "idb": "^8.0.2",
     "input-otp": "^1.2.4",
     "lucide-react": "^0.462.0",
     "next-themes": "^0.3.0",
@@ -63,6 +68,7 @@
     "vaul": "^0.9.3",
     "viem": "^2.23.10",
     "wagmi": "^2.14.13",
+    "web3-validator": "^2.0.6",
     "zod": "^3.23.8"
   },
   "devDependencies": {
@@ -82,6 +88,7 @@
     "tailwindcss": "^3.4.11",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.0.1",
-    "vite": "^5.4.1"
+    "vite": "^5.4.1",
+    "vite-plugin-node-polyfills": "^0.23.0"
   }
 }

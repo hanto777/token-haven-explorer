@@ -1,5 +1,4 @@
-
-import { mainnet, sepolia, polygon, optimism, arbitrum } from 'wagmi/chains';
+import { mainnet, sepolia, polygon } from 'wagmi/chains';
 import { PAYMENT_TOKEN_ADDRESS, AUCTION_TOKEN_ADDRESS } from './confidentialErc20Abi';
 
 // Get the default native token based on chainId
@@ -14,7 +13,7 @@ export const getNativeToken = (chainId: number) => {
         decimals: 18,
         isEncrypted: false,
         isDecrypted: false,
-        logo: 'https://cryptologos.cc/logos/ethereum-eth-logo.png',
+        logo: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/info/logo.png',
       };
     case sepolia.id:
       return {
@@ -25,7 +24,7 @@ export const getNativeToken = (chainId: number) => {
         decimals: 18,
         isEncrypted: false,
         isDecrypted: false,
-        logo: 'https://cryptologos.cc/logos/ethereum-eth-logo.png',
+        logo: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/info/logo.png',
       };
     case polygon.id:
       return {
@@ -36,7 +35,7 @@ export const getNativeToken = (chainId: number) => {
         decimals: 18,
         isEncrypted: false,
         isDecrypted: false,
-        logo: 'https://cryptologos.cc/logos/polygon-matic-logo.png',
+        logo: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/polygon/info/logo.png',
       };
     default:
       return {
@@ -47,7 +46,7 @@ export const getNativeToken = (chainId: number) => {
         decimals: 18,
         isEncrypted: false,
         isDecrypted: false,
-        logo: 'https://cryptologos.cc/logos/ethereum-eth-logo.png',
+        logo: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/info/logo.png',
       };
   }
 };
@@ -65,7 +64,7 @@ export const getDefaultTokens = (chainId: number) => {
           decimals: 6,
           isEncrypted: false,
           isDecrypted: false,
-          logo: 'https://cryptologos.cc/logos/usd-coin-usdc-logo.png',
+          logo: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png',
         },
         {
           id: '3',
@@ -75,7 +74,7 @@ export const getDefaultTokens = (chainId: number) => {
           decimals: 8,
           isEncrypted: false,
           isDecrypted: false,
-          logo: 'https://cryptologos.cc/logos/wrapped-bitcoin-wbtc-logo.png',
+          logo: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599/logo.png',
         }
       ];
     case sepolia.id:
@@ -88,7 +87,7 @@ export const getDefaultTokens = (chainId: number) => {
           decimals: 6,
           isEncrypted: false,
           isDecrypted: false,
-          logo: 'https://cryptologos.cc/logos/usd-coin-usdc-logo.png',
+          logo: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png',
         },
         {
           id: '3',
@@ -98,7 +97,7 @@ export const getDefaultTokens = (chainId: number) => {
           decimals: 18,
           isEncrypted: false,
           isDecrypted: false,
-          logo: 'https://cryptologos.cc/logos/ethereum-eth-logo.png',
+          logo: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/info/logo.png',
         },
         {
           id: '4',
@@ -109,7 +108,7 @@ export const getDefaultTokens = (chainId: number) => {
           isEncrypted: true,
           isDecrypted: false,
           isConfidential: true,
-          logo: 'https://cryptologos.cc/logos/usd-coin-usdc-logo.png',
+          logo: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png',
         },
         {
           id: '4',
@@ -120,7 +119,7 @@ export const getDefaultTokens = (chainId: number) => {
           isEncrypted: true,
           isDecrypted: false,
           isConfidential: true,
-          logo: 'https://cryptologos.cc/logos/zcoin-xzc-logo.png',
+          logo: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/info/logo.png',
         }
       ];
     case polygon.id:
@@ -133,7 +132,7 @@ export const getDefaultTokens = (chainId: number) => {
           decimals: 8,
           isEncrypted: false,
           isDecrypted: false,
-          logo: 'https://cryptologos.cc/logos/wrapped-bitcoin-wbtc-logo.png',
+          logo: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6/logo.png',
         },
         {
           id: '3',
@@ -143,7 +142,7 @@ export const getDefaultTokens = (chainId: number) => {
           decimals: 6,
           isEncrypted: false,
           isDecrypted: false,
-          logo: 'https://cryptologos.cc/logos/usd-coin-usdc-logo.png',
+          logo: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359/logo.png',
         }
       ];
     default:
@@ -156,7 +155,7 @@ export const getDefaultTokens = (chainId: number) => {
           decimals: 6,
           isEncrypted: false,
           isDecrypted: false,
-          logo: 'https://cryptologos.cc/logos/usd-coin-usdc-logo.png',
+          logo: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png',
         }
       ];
   }
