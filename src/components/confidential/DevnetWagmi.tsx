@@ -6,51 +6,30 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { reencryptEuint64 } from "@/lib/reencrypt";
 import { Unlock, Loader2 } from "lucide-react";
 import { Input } from "../ui/input.tsx";
-import {
-  useReadContract,
-  useWriteContract,
-  useWalletClient,
-  usePublicClient,
-  useChainId,
-  useAccount,
-} from "wagmi";
+import { toast } from "sonner";
+import { useWalletClient, useAccount } from "wagmi";
 import { isAddress } from "viem";
 import { getEthersSigner } from "@/lib/wagmi-adapter/client-to-signer.ts";
 import { config } from "@/App.tsx";
 import { Signer } from "ethers";
 import { useTokenBalance } from "@/hooks/useTokenBalance";
+import { useTokens } from "@/hooks/useTokens.tsx";
+import { mainnet, sepolia, polygon, optimism, arbitrum } from "wagmi/chains";
+import {
+  type BaseError,
+  useWaitForTransactionReceipt,
+  useWriteContract,
+} from "wagmi";
 
 const toHexString = (bytes: Uint8Array) =>
   "0x" +
   bytes.reduce((str, byte) => str + byte.toString(16).padStart(2, "0"), "");
 
-// ERC-20 ABI for the balanceOf function
-const erc20ABI = [
-  {
-    constant: true,
-    inputs: [{ name: "owner", type: "address" }],
-    name: "balanceOf",
-    outputs: [{ name: "balance", type: "uint256" }],
-    type: "function",
-  },
-  {
-    constant: true,
-    inputs: [],
-    name: "decimals",
-    outputs: [{ name: "", type: "uint8" }],
-    type: "function",
-  },
-  {
-    constant: true,
-    inputs: [],
-    name: "symbol",
-    outputs: [{ name: "", type: "string" }],
-    type: "function",
-  },
-];
-
 export const DevnetWagmi = () => {
   const { address } = useAccount();
+
+  // Remove the chain switch logic since we only support Sepolia
+  const chain = sepolia;
 
   const [contractAddress, setContractAddress] = useState<`0x${string}`>(
     ZeroAddress as `0x${string}`
@@ -64,6 +43,7 @@ export const DevnetWagmi = () => {
   const [transferAmount, setTransferAmount] = useState("");
   const [isEncrypting, setIsEncrypting] = useState(false);
   const [isTransferring, setIsTransferring] = useState(false);
+  const { tokens, sendToken, transferState } = useTokens();
 
   const [inputValueAddress, setInputValueAddress] = useState("");
   const [chosenAddress, setChosenAddress] = useState("0x");
@@ -83,9 +63,15 @@ export const DevnetWagmi = () => {
 
   const {
     data: transferHash,
-    isPending: isTransferPending,
+    error: transferError,
+    isPending,
     writeContract,
   } = useWriteContract();
+
+  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+    useWaitForTransactionReceipt({
+      hash: transferHash,
+    });
 
   useEffect(() => {
     const loadData = async () => {
@@ -135,8 +121,16 @@ export const DevnetWagmi = () => {
 
   useEffect(() => {
     const initSigner = async () => {
-      const s = await getEthersSigner(config);
-      setSigner(s);
+      try {
+        const s = await getEthersSigner(config);
+        if (!s) {
+          console.warn("Failed to initialize signer");
+          return;
+        }
+        setSigner(s);
+      } catch (error) {
+        console.error("Error initializing signer:", error);
+      }
     };
     initSigner();
   }, []);
@@ -145,12 +139,9 @@ export const DevnetWagmi = () => {
     setIsDecrypting(true);
     try {
       if (!walletClient) throw new Error("Wallet client not found");
-      if (!signer) throw new Error("Signer not initialized");
+      if (!signer)
+        throw new Error("Signer not initialized - please connect your wallet");
       if (!tokenBalance.balance) throw new Error("Balance not found");
-
-      // Generate new keypair and create EIP712 data for signing
-      const { publicKey, privateKey } = instance.generateKeypair();
-      const eip712 = instance.createEIP712(publicKey, contractAddress);
 
       const clearBalance = await reencryptEuint64(
         signer,
@@ -191,10 +182,20 @@ export const DevnetWagmi = () => {
         proof: toHexString(result.inputProof),
       });
 
-      await writeContract({
+      writeContract({
         address: contractAddress,
         abi: [
-          "function transfer(address,bytes32,bytes) external returns (bool)",
+          {
+            name: "transfer",
+            type: "function",
+            stateMutability: "nonpayable",
+            inputs: [
+              { name: "to", type: "address" },
+              { name: "handle", type: "bytes32" },
+              { name: "proof", type: "bytes" },
+            ],
+            outputs: [{ name: "", type: "bool" }],
+          },
         ],
         functionName: "transfer",
         args: [
@@ -202,8 +203,13 @@ export const DevnetWagmi = () => {
           toHexString(result.handles[0]) as `0x${string}`,
           toHexString(result.inputProof) as `0x${string}`,
         ],
-        chain: chainId,
-        address: address as `0x${string}`,
+        account: address,
+        chain: chain,
+      });
+
+      toast.info("Confidential Transfer Initiated", {
+        description:
+          "Processing encrypted transaction. This may take longer than regular transfers.",
       });
 
       // Clear the form
@@ -231,7 +237,7 @@ export const DevnetWagmi = () => {
             <div className="flex items-center justify-between pt-4">
               <div>
                 <div className="font-mono text-xl">
-                  {decryptedBalance.toString()} {tokenSymbol}
+                  {decryptedBalance.toString()} {tokenBalance.symbol}
                 </div>
                 <div className="font-mono text-gray-600 text-sm">
                   Last updated: {lastUpdated}
@@ -305,7 +311,7 @@ export const DevnetWagmi = () => {
                 size="lg"
                 onClick={transferToken}
                 disabled={
-                  isTransferPending ||
+                  isPending ||
                   isEncrypting ||
                   !transferAmount ||
                   chosenAddress === "0x"
@@ -316,16 +322,26 @@ export const DevnetWagmi = () => {
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Encrypting amount...
                   </>
-                ) : isTransferPending ? (
+                ) : isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Transferring...
+                    Confirming transaction...
                   </>
                 ) : (
                   "Transfer Tokens"
                 )}
               </Button>
             </div>
+            {transferHash && <div>Transaction Hash: {transferHash}</div>}
+            {isConfirming && <div>Waiting for confirmation...</div>}
+            {isConfirmed && <div>Transaction confirmed.</div>}
+            {transferError && (
+              <div>
+                Error:{" "}
+                {(transferError as BaseError).shortMessage ||
+                  transferError.message}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
