@@ -13,17 +13,14 @@ import { getEthersSigner } from "@/lib/wagmi-adapter/client-to-signer.ts";
 import { config } from "@/App.tsx";
 import { Signer } from "ethers";
 import { useTokenBalance } from "@/hooks/useTokenBalance";
-import { useTokens } from "@/hooks/useTokens.tsx";
 import { mainnet, sepolia, polygon, optimism, arbitrum } from "wagmi/chains";
 import {
   type BaseError,
   useWaitForTransactionReceipt,
   useWriteContract,
 } from "wagmi";
-
-const toHexString = (bytes: Uint8Array) =>
-  "0x" +
-  bytes.reduce((str, byte) => str + byte.toString(16).padStart(2, "0"), "");
+import { toHexString } from "@/lib/helper";
+import { PAYMENT_TOKEN_ADDRESS } from "@/utils/confidentialErc20Abi.ts";
 
 export const DevnetWagmi = () => {
   const { address } = useAccount();
@@ -31,19 +28,13 @@ export const DevnetWagmi = () => {
   // Remove the chain switch logic since we only support Sepolia
   const chain = sepolia;
 
-  const [contractAddress, setContractAddress] = useState<`0x${string}`>(
-    ZeroAddress as `0x${string}`
-  );
-  const [tokenSymbol, setTokenSymbol] = useState("");
-
   const [decryptedBalance, setDecryptedBalance] = useState("???");
   const [lastUpdated, setLastUpdated] = useState<string>("Never");
   const [isDecrypting, setIsDecrypting] = useState(false);
+  const contractAddress = PAYMENT_TOKEN_ADDRESS;
 
   const [transferAmount, setTransferAmount] = useState("");
   const [isEncrypting, setIsEncrypting] = useState(false);
-  const [isTransferring, setIsTransferring] = useState(false);
-  const { tokens, sendToken, transferState } = useTokens();
 
   const [inputValueAddress, setInputValueAddress] = useState("");
   const [chosenAddress, setChosenAddress] = useState("0x");
@@ -72,36 +63,6 @@ export const DevnetWagmi = () => {
     useWaitForTransactionReceipt({
       hash: transferHash,
     });
-
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        // Conditional import based on MOCKED environment variable
-        let MyConfidentialERC20;
-        if (!import.meta.env.MOCKED) {
-          MyConfidentialERC20 = await import(
-            "@/deployments/sepolia/MyConfidentialERC20.json"
-          );
-          console.log(
-            `Using ${MyConfidentialERC20.address} for the token address on Sepolia`
-          );
-        } else {
-          MyConfidentialERC20 = await import(
-            "@/deployments/localhost/MyConfidentialERC20.json"
-          );
-          console.log(
-            `Using ${MyConfidentialERC20.address} for the token address on Hardhat Local Node`
-          );
-        }
-
-        setContractAddress(MyConfidentialERC20.address);
-      } catch (error) {
-        console.error("Error loading data:", error);
-      }
-    };
-
-    loadData();
-  }, []);
 
   useEffect(() => {
     const trimmedValue = inputValueAddress.trim().toLowerCase();
@@ -174,7 +135,6 @@ export const DevnetWagmi = () => {
         .encrypt();
 
       setIsEncrypting(false);
-      setIsTransferring(true);
 
       console.log("Encrypted transfer data:", {
         to: chosenAddress,
@@ -219,7 +179,6 @@ export const DevnetWagmi = () => {
       console.error("Transfer failed:", error);
     } finally {
       setIsEncrypting(false);
-      setIsTransferring(false);
     }
   };
 
