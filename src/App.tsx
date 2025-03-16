@@ -10,8 +10,6 @@ import { WalletProvider } from "@/hooks/useWallet";
 import { TokenProvider } from "@/providers/TokenProvider";
 import { AnimatePresence } from "framer-motion";
 import { NetworkProvider } from "@/hooks/useNetwork";
-import { useEffect, useState } from "react";
-import { init } from "@/lib/fhevm/fhevmjs";
 
 import Header from "./components/layout/Header";
 import Dashboard from "./pages/Dashboard";
@@ -21,7 +19,7 @@ import Swap from "./pages/Swap";
 import NotFound from "./pages/NotFound";
 
 // Set up wagmi config
-export const config = createConfig({
+const config = createConfig({
   chains: [mainnet, sepolia, polygon],
   transports: {
     [mainnet.id]: http(),
@@ -40,18 +38,6 @@ export const config = createConfig({
 const queryClient = new QueryClient();
 
 function App() {
-  const [isInitialized, setIsInitialized] = useState(false);
-
-  useEffect(() => {
-    init()
-      .then(() => {
-        setIsInitialized(true);
-      })
-      .catch(() => setIsInitialized(false));
-  }, []);
-
-  if (!isInitialized) return null;
-
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>

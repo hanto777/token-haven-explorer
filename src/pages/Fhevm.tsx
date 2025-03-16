@@ -1,38 +1,12 @@
 // Update this page (the content is just a fallback if you fail to update the page)
-import { useAccount, usePublicClient, useChainId } from "wagmi";
-
-import { useEffect, useState } from "react";
-import { createFhevmInstance } from "@/lib/fhevm/fhevmjs";
+import { useAccount } from "wagmi";
 import { DevnetWagmi } from "@/components/confidential/DevnetWagmi";
-import { mainnet, sepolia, polygon, optimism, arbitrum } from "wagmi/chains";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useFhevm } from "@/hooks/useFhevm";
 
 const Fhevm = () => {
-  const { address, isConnected } = useAccount();
-  const [loading, setLoading] = useState(true);
-  const chainId = useChainId();
-
-  // Add check for Sepolia chain
-  const isSepoliaChain = chainId === sepolia.id;
-
-  useEffect(() => {
-    const initializeFhevm = async () => {
-      try {
-        if (isConnected && isSepoliaChain) {
-          await createFhevmInstance();
-          setLoading(false);
-        } else {
-          // Reset loading state when disconnected or wrong chain
-          setLoading(false);
-        }
-      } catch (error) {
-        console.error("Failed to initialize FHEVM:", error);
-        setLoading(false);
-      }
-    };
-
-    initializeFhevm();
-  }, [isConnected, isSepoliaChain]);
+  const { address } = useAccount();
+  const { loading, isSepoliaChain } = useFhevm();
 
   // If not on Sepolia, show switch chain message
   if (!isSepoliaChain) {
