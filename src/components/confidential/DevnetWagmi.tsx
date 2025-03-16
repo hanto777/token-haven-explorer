@@ -41,13 +41,12 @@ export const DevnetWagmi = () => {
     transferHash,
     transferError,
   } = useEncryptedTransfer({
-    contractAddress,
     userAddress: address,
     chain,
   });
 
   const handleTransfer = async () => {
-    if (await transfer(transferAmount, chosenAddress)) {
+    if (await transfer(contractAddress, transferAmount, chosenAddress)) {
       setTransferAmount("");
       setInputValueAddress("");
     }

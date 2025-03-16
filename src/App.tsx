@@ -10,6 +10,7 @@ import { WalletProvider } from "@/hooks/useWallet";
 import { TokenProvider } from "@/providers/TokenProvider";
 import { AnimatePresence } from "framer-motion";
 import { NetworkProvider } from "@/hooks/useNetwork";
+import { FhevmProvider } from "@/contexts/FhevmContext";
 
 import Header from "./components/layout/Header";
 import Dashboard from "./pages/Dashboard";
@@ -44,22 +45,24 @@ function App() {
         <TooltipProvider>
           <NetworkProvider>
             <WalletProvider>
-              <TokenProvider>
-                <Toaster />
-                <Sonner />
-                <BrowserRouter>
-                  <Header />
-                  <AnimatePresence mode="wait">
-                    <Routes>
-                      <Route path="/" element={<Dashboard />} />
-                      <Route path="/transfer" element={<Transfer />} />
-                      <Route path="/swap" element={<Swap />} />
-                      <Route path="/fhevm" element={<Fhevm />} />
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </AnimatePresence>
-                </BrowserRouter>
-              </TokenProvider>
+              <FhevmProvider>
+                <TokenProvider>
+                  <Toaster />
+                  <Sonner />
+                  <BrowserRouter>
+                    <Header />
+                    <AnimatePresence mode="wait">
+                      <Routes>
+                        <Route path="/" element={<Dashboard />} />
+                        <Route path="/transfer" element={<Transfer />} />
+                        <Route path="/swap" element={<Swap />} />
+                        <Route path="/fhevm" element={<Fhevm />} />
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </AnimatePresence>
+                  </BrowserRouter>
+                </TokenProvider>
+              </FhevmProvider>
             </WalletProvider>
           </NetworkProvider>
         </TooltipProvider>

@@ -2,7 +2,7 @@
 import { useAccount } from "wagmi";
 import { DevnetWagmi } from "@/components/confidential/DevnetWagmi";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useFhevm } from "@/hooks/useFhevm";
+import { useFhevm } from "@/contexts/FhevmContext";
 
 const Fhevm = () => {
   const { address } = useAccount();

@@ -1,10 +1,26 @@
-import { useEffect, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
 import { useAccount, useChainId } from "wagmi";
 import { sepolia } from "wagmi/chains";
 import { createFhevmInstance } from "@/lib/fhevm/fhevmjs";
 import { init } from "@/lib/fhevm/fhevmjs";
 
-export const useFhevm = () => {
+interface FhevmContextType {
+  loading: boolean;
+  isSepoliaChain: boolean;
+  isInitialized: boolean;
+}
+
+export const FhevmContext = createContext<FhevmContextType | undefined>(
+  undefined
+);
+
+export function FhevmProvider({ children }: { children: ReactNode }) {
   const { isConnected } = useAccount();
   const [loading, setLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -31,9 +47,17 @@ export const useFhevm = () => {
     initialize();
   }, [isConnected, isSepoliaChain]);
 
-  return {
-    loading,
-    isSepoliaChain,
-    isInitialized,
-  };
-};
+  return (
+    <FhevmContext.Provider value={{ loading, isSepoliaChain, isInitialized }}>
+      {children}
+    </FhevmContext.Provider>
+  );
+}
+
+export function useFhevm() {
+  const context = useContext(FhevmContext);
+  if (context === undefined) {
+    throw new Error("useFhevm must be used within a FhevmProvider");
+  }
+  return context;
+}

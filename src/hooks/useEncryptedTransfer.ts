@@ -6,13 +6,11 @@ import { toast } from "sonner";
 import { Chain } from "wagmi/chains";
 
 interface UseEncryptedTransferProps {
-  contractAddress: `0x${string}`;
   userAddress?: `0x${string}`;
   chain: Chain; // Replace with proper chain type
 }
 
 export const useEncryptedTransfer = ({
-  contractAddress,
   userAddress,
   chain,
 }: UseEncryptedTransferProps) => {
@@ -30,7 +28,11 @@ export const useEncryptedTransfer = ({
       hash: transferHash,
     });
 
-  const transfer = async (amount: string, recipientAddress: `0x${string}`) => {
+  const transfer = async (
+    contractAddress: `0x${string}`,
+    amount: string,
+    recipientAddress: `0x${string}`
+  ) => {
     if (!amount || !userAddress) return;
 
     setIsEncrypting(true);
