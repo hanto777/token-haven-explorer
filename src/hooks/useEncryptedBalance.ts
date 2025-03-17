@@ -4,12 +4,10 @@ import { reencryptEuint64 } from "@/lib/reencrypt";
 import { Signer } from "ethers";
 
 interface UseEncryptedBalanceProps {
-  contractAddress: `0x${string}`;
   signer: Signer | null;
 }
 
 export const useEncryptedBalance = ({
-  contractAddress,
   signer,
 }: UseEncryptedBalanceProps) => {
   const [decryptedBalance, setDecryptedBalance] = useState("•••••••");
@@ -17,7 +15,7 @@ export const useEncryptedBalance = ({
   const [isDecrypting, setIsDecrypting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const decrypt = async (handle: bigint) => {
+  const decrypt = async (handle: bigint, contractAddress: `0x${string}`) => {
     setIsDecrypting(true);
     setError(null);
     try {

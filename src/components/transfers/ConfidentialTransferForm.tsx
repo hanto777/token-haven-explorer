@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useTokens } from "@/hooks/useTokens";
-import { useAccount } from "wagmi";
+import { useAccount, useChainId } from "wagmi";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { sepolia } from "wagmi/chains";
 import { useNetwork } from "@/hooks/useNetwork";
@@ -10,21 +10,15 @@ import NoConfidentialTokensMessage from "./confidential/NoConfidentialTokensMess
 import ConfidentialTransferFormFields from "./confidential/ConfidentialTransferFormFields";
 import TransferSuccessMessage from "./TransferSuccessMessage";
 import { useEncryptedTransfer } from "@/hooks/useEncryptedTransfer";
-import { useFhevm } from "@/contexts/FhevmContext";
-import { PAYMENT_TOKEN_ADDRESS } from "@/utils/confidentialErc20Abi";
-import { useEncryptedBalance } from "@/hooks/useEncryptedBalance";
-import { useSigner } from "@/hooks/useSigner";
 
 const ConfidentialTransferForm = () => {
   const { tokens, transferState } = useTokens();
   const chain = sepolia;
-  const contractAddress = PAYMENT_TOKEN_ADDRESS;
+  const chainId = useChainId();
 
   const { address } = useAccount();
-  const { loading, isSepoliaChain } = useFhevm();
   const { currentChain, switchNetwork } = useNetwork();
   const { toast } = useToast();
-  const { signer } = useSigner();
 
   const [selectedTokenId, setSelectedTokenId] = useState<string>("");
   const [recipient, setRecipient] = useState<string>("");
@@ -44,12 +38,6 @@ const ConfidentialTransferForm = () => {
     chain,
   });
 
-  const { decryptedBalance, lastUpdated, isDecrypting, decrypt } =
-    useEncryptedBalance({
-      contractAddress,
-      signer,
-    });
-
   // Extract transfer state properties
   const { hash, isPending, isError, error, isSuccess } = transferState;
 
@@ -57,7 +45,7 @@ const ConfidentialTransferForm = () => {
   const confidentialTokens = tokens.filter((token) => token.isConfidential);
 
   // Check if user is on the right network (Sepolia)
-  const isOnSepolia = currentChain?.id === sepolia.id;
+  const isOnSepolia = chainId === sepolia.id;
 
   // Add useEffect to watch transfer states
   useEffect(() => {
@@ -154,40 +142,6 @@ const ConfidentialTransferForm = () => {
     }
   };
 
-  const handleDecrypt = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // Check if user is on Sepolia network
-    if (!isOnSepolia) {
-      toast({
-        title: "Wrong Network",
-        description:
-          "Confidential tokens are only available on Sepolia testnet. Please switch networks.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Validate form
-    if (!selectedTokenId) {
-      setFormError("Please select a confidential token");
-      return;
-    }
-
-    try {
-      const selectedToken = tokens.find((t) => t.id === selectedTokenId);
-      console.log("decrypt");
-      decrypt(selectedToken.rawBalance);
-    } catch (error) {
-      console.error("Confidential decrypt error:", error);
-      toast({
-        title: "Decrypt Failed",
-        description: error.message || "Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
   const handleReset = () => {
     setAmount("");
     setRecipient("");
@@ -199,7 +153,7 @@ const ConfidentialTransferForm = () => {
   }
 
   // If not on Sepolia, show switch chain message
-  if (!isSepoliaChain) {
+  if (!isOnSepolia) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
         <div className="w-full max-w-2xl space-y-4 p-4">
@@ -217,14 +171,6 @@ const ConfidentialTransferForm = () => {
             </CardContent>
           </Card>
         </div>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
-        <p>Loading FHEVM...</p>
       </div>
     );
   }
@@ -256,7 +202,6 @@ const ConfidentialTransferForm = () => {
               formError={formError}
               isPending={isPending}
               handleSubmit={handleSubmit}
-              handleDecrypt={handleDecrypt}
             />
           )}
         </AnimatePresence>

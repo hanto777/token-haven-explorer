@@ -14,6 +14,7 @@ import { useTokenBalance } from "@/hooks/useTokenBalance";
 import { useAccount } from "wagmi";
 import { useEncryptedBalance } from "@/hooks/useEncryptedBalance";
 import { Signer } from "ethers";
+import { useSigner } from "@/hooks/useSigner";
 
 interface TokenCardProps {
   token: Token;
@@ -26,12 +27,12 @@ interface TokenCardProps {
 const TokenCard = ({
   token,
   decryptToken,
-  signer,
   loadingFhevm,
   isSepoliaChain,
 }: TokenCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const { address } = useAccount();
+  const { signer } = useSigner();
 
   // Use the token balance hook to get real-time balance
   const tokenBalance = useTokenBalance({
@@ -42,7 +43,6 @@ const TokenCard = ({
 
   const { decryptedBalance, lastUpdated, isDecrypting, decrypt, error } =
     useEncryptedBalance({
-      contractAddress: token.address as `0x${string}`,
       signer,
     });
 
@@ -73,7 +73,7 @@ const TokenCard = ({
       return;
     }
     try {
-      await decrypt(tokenBalance.rawBalance);
+      await decrypt(tokenBalance.rawBalance, token.address as `0x${string}`);
     } catch (error) {
       console.error("Failed to decrypt balance:", error);
     }
@@ -116,7 +116,7 @@ const TokenCard = ({
               </div>
             </div>
 
-            {token.isEncrypted && isSepoliaChain && !loadingFhevm && (
+            {token.isEncrypted && (
               <Button
                 variant="ghost"
                 size="icon"

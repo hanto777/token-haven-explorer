@@ -15,6 +15,7 @@ import TransactionStatus from "../TransactionStatus";
 import NetworkWarning from "./NetworkWarning";
 import { Token } from "@/types/tokenTypes";
 import { sepolia } from "wagmi/chains";
+import { useTokenBalance } from "@/hooks/useTokenBalance";
 
 interface ConfidentialTransferFormFieldsProps {
   isOnSepolia: boolean;
@@ -29,7 +30,6 @@ interface ConfidentialTransferFormFieldsProps {
   formError: string;
   isPending: boolean;
   handleSubmit: (e: React.FormEvent) => Promise<void>;
-  handleDecrypt: (e: React.FormEvent) => Promise<void>;
 }
 
 const ConfidentialTransferFormFields = ({
@@ -45,8 +45,81 @@ const ConfidentialTransferFormFields = ({
   formError,
   isPending,
   handleSubmit,
-  handleDecrypt,
 }: ConfidentialTransferFormFieldsProps) => {
+  const { toast } = useToast();
+  const { signer } = useSigner();
+  const { address } = useAccount();
+  console.log("address", address);
+
+  const token = confidentialTokens.find((t) => t.id === selectedTokenId);
+  console.log("address", address);
+  console.log("token: ", token);
+
+  // Use the token balance hook to get real-time balance
+  const tokenBalance = useTokenBalance({
+    address: address,
+    tokenAddress: token?.address || "native",
+    enabled: !!address && !!token,
+  });
+
+  const { decryptedBalance, lastUpdated, isDecrypting, decrypt, error } =
+    useEncryptedBalance({
+      signer,
+    });
+
+  const handleDecrypt = async (selectedTokenId: string) => {
+    if (!isOnSepolia) {
+      toast({
+        title: "Wrong Network",
+        description:
+          "Confidential tokens are only available on Sepolia testnet. Please switch networks.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!signer) {
+      toast({
+        title: "Wallet Not Connected",
+        description: "Please connect your wallet to decrypt balances.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      if (!token) {
+        throw new Error("Selected token not found");
+      }
+
+      // Show decryption started toast
+      toast({
+        title: "Decrypting Balance",
+        description: "Please wait while we decrypt your balance...",
+      });
+
+      await decrypt(
+        BigInt(tokenBalance.rawBalance),
+        token.address as `0x${string}`
+      );
+
+      // Show success toast after decryption
+      toast({
+        title: "Balance Decrypted",
+        description:
+          "Your confidential balance has been decrypted successfully.",
+        variant: "default",
+      });
+    } catch (error) {
+      console.error("Confidential decrypt error:", error);
+      toast({
+        title: "Decrypt Failed",
+        description: (error as Error).message || "Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <motion.form
       initial={{ opacity: 0 }}
@@ -123,10 +196,23 @@ const ConfidentialTransferFormFields = ({
                   variant="ghost"
                   size="sm"
                   className="text-xs h-auto py-0 px-1"
-                  onClick={handleDecrypt}
+                  onClick={() => handleDecrypt(selectedTokenId)}
+                  disabled={isDecrypting}
                 >
-                  Decrypt Balance
+                  {isDecrypting ? (
+                    <>
+                      <div className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent mr-1" />
+                      Decrypting...
+                    </>
+                  ) : (
+                    "Decrypt Balance"
+                  )}
                 </Button>
+              )}
+              {isDecrypting ? (
+                <span className="animate-pulse">Decrypting...</span>
+              ) : (
+                decryptedBalance
               )}
             </span>
           )}
@@ -187,6 +273,9 @@ const ConfidentialTransferFormFields = ({
 };
 
 // Need to import here to avoid circular dependency
-import { useTokens } from "@/hooks/useTokens";
+import { useToast } from "@/hooks/use-toast";
+import { useSigner } from "@/hooks/useSigner";
+import { useEncryptedBalance } from "@/hooks/useEncryptedBalance";
+import { useAccount } from "wagmi";
 
 export default ConfidentialTransferFormFields;

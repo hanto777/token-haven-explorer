@@ -17,8 +17,7 @@ export const DevnetWagmi = () => {
   const { address } = useAccount();
   const chain = sepolia;
   const contractAddress = PAYMENT_TOKEN_ADDRESS;
-  const config = useConfig();
-  const { signer } = useSigner(config);
+  const { signer } = useSigner();
 
   const [transferAmount, setTransferAmount] = useState("");
   const [inputValueAddress, setInputValueAddress] = useState("");
@@ -34,7 +33,6 @@ export const DevnetWagmi = () => {
   // Use custom hooks
   const { decryptedBalance, lastUpdated, isDecrypting, decrypt } =
     useEncryptedBalance({
-      contractAddress,
       signer,
     });
 
@@ -80,7 +78,9 @@ export const DevnetWagmi = () => {
               </div>
               <Button
                 variant="outline"
-                onClick={() => decrypt(tokenBalance.rawBalance)}
+                onClick={() =>
+                  decrypt(tokenBalance.rawBalance, contractAddress)
+                }
                 disabled={isDecrypting}
               >
                 {isDecrypting ? (

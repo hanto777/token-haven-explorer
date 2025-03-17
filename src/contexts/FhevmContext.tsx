@@ -47,6 +47,14 @@ export function FhevmProvider({ children }: { children: ReactNode }) {
     initialize();
   }, [isConnected, isSepoliaChain]);
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
+        <p>Loading FHEVM...</p>
+      </div>
+    );
+  }
+
   return (
     <FhevmContext.Provider value={{ loading, isSepoliaChain, isInitialized }}>
       {children}

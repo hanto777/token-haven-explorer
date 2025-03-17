@@ -1,10 +1,9 @@
 // Update this page (the content is just a fallback if you fail to update the page)
-import { DevnetWagmi } from "@/components/confidential/DevnetWagmi";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAccount, useChainId } from "wagmi";
 import { sepolia } from "wagmi/chains";
 
-const Fhevm = () => {
+const Auction = () => {
   const { address } = useAccount();
 
   const chainId = useChainId();
@@ -36,11 +35,9 @@ const Fhevm = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
-      <div className="w-full max-w-2xl space-y-4 p-4">
-        {address && <DevnetWagmi />}
-      </div>
+      <div className="w-full max-w-2xl space-y-4 p-4"></div>
     </div>
   );
 };
 
-export default Fhevm;
+export default Auction;

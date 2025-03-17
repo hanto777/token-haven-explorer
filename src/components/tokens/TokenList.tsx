@@ -4,13 +4,9 @@ import TokenCard from "./TokenCard";
 import { motion, AnimatePresence } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Coins } from "lucide-react";
-import { useFhevm } from "@/contexts/FhevmContext";
-import { useSigner } from "@/hooks/useSigner";
 
 const TokenList = () => {
   const { tokens, isLoading, decryptToken } = useTokens();
-  const { loading, isSepoliaChain } = useFhevm();
-  const { signer } = useSigner();
   const [nativeToken, setNativeToken] = useState<Token | null>(null);
   const [otherTokens, setOtherTokens] = useState<Token[]>([]);
 
@@ -130,9 +126,6 @@ const TokenList = () => {
                   <TokenCard
                     token={token}
                     decryptToken={decryptToken}
-                    signer={signer}
-                    loadingFhevm={loading}
-                    isSepoliaChain={isSepoliaChain}
                   />
                 </motion.div>
               ))}

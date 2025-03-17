@@ -18,6 +18,7 @@ import Transfer from "./pages/Transfer";
 import Fhevm from "./pages/Fhevm";
 import Swap from "./pages/Swap";
 import NotFound from "./pages/NotFound";
+import Auction from "./pages/Auction";
 
 // Set up wagmi config
 const config = createConfig({
@@ -57,6 +58,7 @@ function App() {
                         <Route path="/transfer" element={<Transfer />} />
                         <Route path="/swap" element={<Swap />} />
                         <Route path="/fhevm" element={<Fhevm />} />
+                        <Route path="/auction" element={<Auction />} />
                         <Route path="*" element={<NotFound />} />
                       </Routes>
                     </AnimatePresence>
