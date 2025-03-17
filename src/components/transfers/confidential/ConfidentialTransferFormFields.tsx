@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,6 +29,7 @@ interface ConfidentialTransferFormFieldsProps {
   formError: string;
   isPending: boolean;
   handleSubmit: (e: React.FormEvent) => Promise<void>;
+  handleDecrypt: (e: React.FormEvent) => Promise<void>;
 }
 
 const ConfidentialTransferFormFields = ({
@@ -44,7 +44,8 @@ const ConfidentialTransferFormFields = ({
   setAmount,
   formError,
   isPending,
-  handleSubmit
+  handleSubmit,
+  handleDecrypt,
 }: ConfidentialTransferFormFieldsProps) => {
   return (
     <motion.form
@@ -55,12 +56,12 @@ const ConfidentialTransferFormFields = ({
       onSubmit={handleSubmit}
       className="space-y-6"
     >
-      <NetworkWarning 
-        isOnSepolia={isOnSepolia} 
-        switchNetwork={switchNetwork} 
-        chainId={sepolia.id} 
+      <NetworkWarning
+        isOnSepolia={isOnSepolia}
+        switchNetwork={switchNetwork}
+        chainId={sepolia.id}
       />
-    
+
       <div className="space-y-2">
         <Label htmlFor="token">Confidential Token</Label>
         <Select
@@ -72,18 +73,20 @@ const ConfidentialTransferFormFields = ({
             <SelectValue placeholder="Select token" />
           </SelectTrigger>
           <SelectContent>
-            {confidentialTokens.map(token => (
+            {confidentialTokens.map((token) => (
               <SelectItem key={token.id} value={token.id}>
                 <div className="flex items-center gap-2">
                   <div className="w-5 h-5 rounded-full overflow-hidden bg-muted flex items-center justify-center">
                     {token.logo ? (
-                      <img 
-                        src={token.logo} 
-                        alt={token.name} 
+                      <img
+                        src={token.logo}
+                        alt={token.name}
                         className="w-4 h-4 object-contain"
                       />
                     ) : (
-                      <span className="text-xs">{token.symbol.slice(0, 2)}</span>
+                      <span className="text-xs">
+                        {token.symbol.slice(0, 2)}
+                      </span>
                     )}
                   </div>
                   <span>{token.symbol}</span>
@@ -96,32 +99,31 @@ const ConfidentialTransferFormFields = ({
           </SelectContent>
         </Select>
       </div>
-      
+
       <div className="space-y-2">
         <Label htmlFor="recipient">Recipient Address</Label>
         <Input
           id="recipient"
           placeholder="0x..."
           value={recipient}
-          onChange={e => setRecipient(e.target.value)}
+          onChange={(e) => setRecipient(e.target.value)}
           disabled={isPending || !isOnSepolia}
         />
       </div>
-      
+
       <div className="space-y-2">
         <div className="flex justify-between">
           <Label htmlFor="amount">Amount</Label>
           {selectedTokenId && (
             <span className="text-xs text-muted-foreground">
-              {!confidentialTokens.find(t => t.id === selectedTokenId)?.isDecrypted && (
+              {!confidentialTokens.find((t) => t.id === selectedTokenId)
+                ?.isDecrypted && (
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
                   className="text-xs h-auto py-0 px-1"
-                  onClick={() => confidentialTokens.find(t => t.id === selectedTokenId) && 
-                    confidentialTokens.find(t => t.id === selectedTokenId)?.isDecrypted === false && 
-                    useTokens().decryptToken(selectedTokenId)}
+                  onClick={handleDecrypt}
                 >
                   Decrypt Balance
                 </Button>
@@ -135,7 +137,7 @@ const ConfidentialTransferFormFields = ({
             type="number"
             placeholder="0.0"
             value={amount}
-            onChange={e => setAmount(e.target.value)}
+            onChange={(e) => setAmount(e.target.value)}
             disabled={isPending || !isOnSepolia}
             className="pr-16"
             step="any"
@@ -143,17 +145,20 @@ const ConfidentialTransferFormFields = ({
           {selectedTokenId && (
             <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
               <span className="text-muted-foreground">
-                {confidentialTokens.find(t => t.id === selectedTokenId)?.symbol}
+                {
+                  confidentialTokens.find((t) => t.id === selectedTokenId)
+                    ?.symbol
+                }
               </span>
             </div>
           )}
         </div>
       </div>
-      
+
       <TransferFormError message={formError} />
-      
+
       <TransactionStatus hash={undefined} isConfirmed={false} />
-      
+
       <Button
         type="submit"
         disabled={isPending || !isOnSepolia}
@@ -171,7 +176,7 @@ const ConfidentialTransferFormFields = ({
           </>
         )}
       </Button>
-      
+
       {!isOnSepolia && (
         <div className="text-center text-sm text-muted-foreground">
           You need to switch to Sepolia testnet to send confidential tokens.

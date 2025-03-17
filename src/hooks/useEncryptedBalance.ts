@@ -2,41 +2,34 @@ import { useState } from "react";
 import { getInstance } from "@/lib/fhevm/fhevmjs";
 import { reencryptEuint64 } from "@/lib/reencrypt";
 import { Signer } from "ethers";
-import { useTokenBalance } from "@/hooks/useTokenBalance";
 
 interface UseEncryptedBalanceProps {
-  userAddress?: `0x${string}`;
   contractAddress: `0x${string}`;
   signer: Signer | null;
 }
 
 export const useEncryptedBalance = ({
-  userAddress,
   contractAddress,
   signer,
 }: UseEncryptedBalanceProps) => {
-  const [decryptedBalance, setDecryptedBalance] = useState("???");
+  const [decryptedBalance, setDecryptedBalance] = useState("•••••••");
   const [lastUpdated, setLastUpdated] = useState<string>("Never");
   const [isDecrypting, setIsDecrypting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const tokenBalance = useTokenBalance({
-    address: userAddress,
-    tokenAddress: contractAddress || "native",
-    enabled: !!userAddress,
-  });
-
-  const decrypt = async () => {
+  const decrypt = async (handle: bigint) => {
     setIsDecrypting(true);
+    setError(null);
     try {
       if (!signer)
         throw new Error("Signer not initialized - please connect your wallet");
-      if (!tokenBalance.balance) throw new Error("Balance not found");
+      if (!handle) throw new Error("Balance not found");
 
       const instance = getInstance();
       const clearBalance = await reencryptEuint64(
         signer,
         instance,
-        BigInt(tokenBalance.rawBalance),
+        BigInt(handle),
         contractAddress
       );
       setDecryptedBalance(clearBalance.toString());
@@ -46,6 +39,9 @@ export const useEncryptedBalance = ({
       if (error === "Handle is not initialized") {
         setDecryptedBalance("0");
       } else {
+        setError(
+          error instanceof Error ? error.message : "Failed to decrypt balance"
+        );
         throw error;
       }
     } finally {
@@ -58,6 +54,6 @@ export const useEncryptedBalance = ({
     lastUpdated,
     isDecrypting,
     decrypt,
-    tokenBalance,
+    error,
   };
 };

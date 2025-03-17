@@ -4,25 +4,29 @@ import TokenCard from "./TokenCard";
 import { motion, AnimatePresence } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Coins } from "lucide-react";
+import { useFhevm } from "@/contexts/FhevmContext";
+import { useSigner } from "@/hooks/useSigner";
 
 const TokenList = () => {
   const { tokens, isLoading, decryptToken } = useTokens();
+  const { loading, isSepoliaChain } = useFhevm();
+  const { signer } = useSigner();
   const [nativeToken, setNativeToken] = useState<Token | null>(null);
   const [otherTokens, setOtherTokens] = useState<Token[]>([]);
-  
+
   // Separate native token from other tokens
   useEffect(() => {
     if (!isLoading && tokens.length > 0) {
-      const native = tokens.find(t => t.address === 'native') || null;
-      const others = tokens.filter(t => t.address !== 'native');
-      
+      const native = tokens.find((t) => t.address === "native") || null;
+      const others = tokens.filter((t) => t.address !== "native");
+
       setNativeToken(native);
-      
+
       // Stagger loading of other tokens
       setOtherTokens([]);
       others.forEach((token, index) => {
         setTimeout(() => {
-          setOtherTokens(prev => [...prev, token]);
+          setOtherTokens((prev) => [...prev, token]);
         }, index * 100);
       });
     } else {
@@ -36,16 +40,16 @@ const TokenList = () => {
     show: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1
-      }
-    }
+        staggerChildren: 0.1,
+      },
+    },
   };
-  
+
   const item = {
     hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 }
+    show: { opacity: 1, y: 0 },
   };
-  
+
   if (isLoading) {
     return (
       <div className="space-y-8">
@@ -53,7 +57,7 @@ const TokenList = () => {
         <div className="h-[220px]">
           <Skeleton className="h-full w-full rounded-lg" />
         </div>
-        
+
         {/* Other tokens skeleton */}
         <div>
           <div className="mb-4">
@@ -70,16 +74,18 @@ const TokenList = () => {
       </div>
     );
   }
-  
+
   if (tokens.length === 0) {
     return (
       <div className="text-center py-12">
         <h3 className="text-xl font-medium">No tokens found</h3>
-        <p className="text-muted-foreground mt-2">Connect your wallet to view your tokens</p>
+        <p className="text-muted-foreground mt-2">
+          Connect your wallet to view your tokens
+        </p>
       </div>
     );
   }
-  
+
   return (
     <div className="space-y-10">
       {/* Native Currency Section */}
@@ -94,11 +100,11 @@ const TokenList = () => {
             Native Token
           </h2>
           <div className="max-w-md">
-            <TokenCard token={nativeToken} onDecrypt={decryptToken} />
+            <TokenCard token={nativeToken} decryptToken={decryptToken} />
           </div>
         </motion.div>
       )}
-      
+
       {/* Other Tokens Section */}
       {otherTokens.length > 0 && (
         <motion.div
@@ -115,13 +121,19 @@ const TokenList = () => {
           >
             <AnimatePresence>
               {otherTokens.map((token) => (
-                <motion.div 
+                <motion.div
                   key={token.id}
                   variants={item}
                   exit={{ opacity: 0, y: -20 }}
                   className="h-full"
                 >
-                  <TokenCard token={token} onDecrypt={decryptToken} />
+                  <TokenCard
+                    token={token}
+                    decryptToken={decryptToken}
+                    signer={signer}
+                    loadingFhevm={loading}
+                    isSepoliaChain={isSepoliaChain}
+                  />
                 </motion.div>
               ))}
             </AnimatePresence>

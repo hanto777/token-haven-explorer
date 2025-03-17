@@ -1,9 +1,9 @@
-
 export interface Token {
   id: string;
   symbol: string;
   name: string;
   balance: string;
+  rawBalance: string;
   value: number;
   change24h: number;
   isEncrypted: boolean;

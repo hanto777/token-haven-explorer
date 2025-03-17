@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { Signer } from "ethers";
 import { getEthersSigner } from "@/lib/wagmi-adapter/client-to-signer";
+import { useConfig } from "wagmi";
 
-export function useSigner(config) {
+export function useSigner() {
+  const config = useConfig();
   const [signer, setSigner] = useState<Signer | null>(null);
 
   useEffect(() => {

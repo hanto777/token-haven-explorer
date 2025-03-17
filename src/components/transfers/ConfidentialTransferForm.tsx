@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTokens } from "@/hooks/useTokens";
 import { useAccount } from "wagmi";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +12,8 @@ import TransferSuccessMessage from "./TransferSuccessMessage";
 import { useEncryptedTransfer } from "@/hooks/useEncryptedTransfer";
 import { useFhevm } from "@/contexts/FhevmContext";
 import { PAYMENT_TOKEN_ADDRESS } from "@/utils/confidentialErc20Abi";
+import { useEncryptedBalance } from "@/hooks/useEncryptedBalance";
+import { useSigner } from "@/hooks/useSigner";
 
 const ConfidentialTransferForm = () => {
   const { tokens, transferState } = useTokens();
@@ -22,6 +24,7 @@ const ConfidentialTransferForm = () => {
   const { loading, isSepoliaChain } = useFhevm();
   const { currentChain, switchNetwork } = useNetwork();
   const { toast } = useToast();
+  const { signer } = useSigner();
 
   const [selectedTokenId, setSelectedTokenId] = useState<string>("");
   const [recipient, setRecipient] = useState<string>("");
@@ -41,6 +44,12 @@ const ConfidentialTransferForm = () => {
     chain,
   });
 
+  const { decryptedBalance, lastUpdated, isDecrypting, decrypt } =
+    useEncryptedBalance({
+      contractAddress,
+      signer,
+    });
+
   // Extract transfer state properties
   const { hash, isPending, isError, error, isSuccess } = transferState;
 
@@ -49,6 +58,47 @@ const ConfidentialTransferForm = () => {
 
   // Check if user is on the right network (Sepolia)
   const isOnSepolia = currentChain?.id === sepolia.id;
+
+  // Add useEffect to watch transfer states
+  useEffect(() => {
+    if (isEncrypting) {
+      toast({
+        title: "Encrypting Transaction",
+        description: "Generating encrypted proof for your transaction...",
+      });
+    }
+  }, [isEncrypting, toast]);
+
+  useEffect(() => {
+    if (isPendingTransfer) {
+      toast({
+        title: "Transaction Pending",
+        description: `Sending ${amount} ${
+          tokens.find((t) => t.id === selectedTokenId)?.symbol
+        } confidentially...`,
+      });
+    }
+  }, [isPendingTransfer, amount, selectedTokenId, tokens, toast]);
+
+  useEffect(() => {
+    if (isConfirming) {
+      toast({
+        title: "Confirming Transaction",
+        description: "Waiting for confirmation...",
+      });
+    }
+  }, [isConfirming, toast]);
+
+  useEffect(() => {
+    if (isConfirmed) {
+      toast({
+        title: "Transfer Complete",
+        description: `Successfully sent ${amount} ${
+          tokens.find((t) => t.id === selectedTokenId)?.symbol
+        }`,
+      });
+    }
+  }, [isConfirmed, amount, selectedTokenId, tokens, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,29 +132,59 @@ const ConfidentialTransferForm = () => {
 
     setFormError("");
 
-    // Mock confidential transfer logic
     try {
-      toast({
-        title: "Preparing Confidential Transfer",
-        description: "Generating encrypted proof for your transaction...",
-      });
-
-      // Simulate processing delay
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // Simulate a confidential transfer (this would be a real transaction in production)
-      // In a real implementation, we would use the confidential transfer functionality
       const selectedToken = tokens.find((t) => t.id === selectedTokenId);
+      await transfer(
+        selectedToken.address as `0x${string}`,
+        amount,
+        recipient as `0x${string}`
+      );
 
-      await transfer(selectedToken.address as `0x${string}`, amount, recipient as `0x${string}`)
-
-      toast({
-        title: "Transfer Initiated",
-        description: `Sending ${amount} ${selectedToken?.symbol} confidentially...`,
-      });
+      if (transferError) {
+        throw transferError;
+      }
     } catch (error) {
       console.error("Confidential transfer error:", error);
       setFormError("Transfer failed. Please try again.");
+      toast({
+        title: "Transfer Failed",
+        description: error.message || "Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDecrypt = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Check if user is on Sepolia network
+    if (!isOnSepolia) {
+      toast({
+        title: "Wrong Network",
+        description:
+          "Confidential tokens are only available on Sepolia testnet. Please switch networks.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate form
+    if (!selectedTokenId) {
+      setFormError("Please select a confidential token");
+      return;
+    }
+
+    try {
+      const selectedToken = tokens.find((t) => t.id === selectedTokenId);
+      console.log("decrypt");
+      decrypt(selectedToken.rawBalance);
+    } catch (error) {
+      console.error("Confidential decrypt error:", error);
+      toast({
+        title: "Decrypt Failed",
+        description: error.message || "Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -176,6 +256,7 @@ const ConfidentialTransferForm = () => {
               formError={formError}
               isPending={isPending}
               handleSubmit={handleSubmit}
+              handleDecrypt={handleDecrypt}
             />
           )}
         </AnimatePresence>

@@ -11,6 +11,7 @@ import { useEncryptedBalance } from "@/hooks/useEncryptedBalance";
 import { useEncryptedTransfer } from "@/hooks/useEncryptedTransfer";
 import { useSigner } from "@/hooks/useSigner";
 import { useAddressValidation } from "@/hooks/useAddressValidation";
+import { useTokenBalance } from "@/hooks/useTokenBalance";
 
 export const DevnetWagmi = () => {
   const { address } = useAccount();
@@ -24,10 +25,15 @@ export const DevnetWagmi = () => {
   const { chosenAddress, errorMessage } =
     useAddressValidation(inputValueAddress);
 
+  const tokenBalance = useTokenBalance({
+    address,
+    tokenAddress: contractAddress || "native",
+    enabled: !!address,
+  });
+
   // Use custom hooks
-  const { decryptedBalance, lastUpdated, isDecrypting, decrypt, tokenBalance } =
+  const { decryptedBalance, lastUpdated, isDecrypting, decrypt } =
     useEncryptedBalance({
-      userAddress: address,
       contractAddress,
       signer,
     });
@@ -74,7 +80,7 @@ export const DevnetWagmi = () => {
               </div>
               <Button
                 variant="outline"
-                onClick={() => decrypt()}
+                onClick={() => decrypt(tokenBalance.rawBalance)}
                 disabled={isDecrypting}
               >
                 {isDecrypting ? (
