@@ -8,7 +8,20 @@ import { Slider } from "@/components/ui/slider";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useAccount, useChainId } from "wagmi";
 import { sepolia } from "wagmi/chains";
-import { Gavel, Clock, ArrowDown, Info, Trophy, Timer } from "lucide-react";
+import { Gavel, Clock, ArrowDown, Info, Trophy, Timer, Coins } from "lucide-react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  Area,
+  AreaChart
+} from "recharts";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 
 const Auction = () => {
   const { address } = useAccount();
@@ -22,8 +35,43 @@ const Auction = () => {
   const [currentPrice, setCurrentPrice] = useState<number>(100);
   const [timeRemaining, setTimeRemaining] = useState<number>(24 * 60 * 60); // seconds
   const [bidAmount, setBidAmount] = useState<string>("0");
-  const [bids, setBids] = useState<Array<{address: string, amount: string, timestamp: Date}>>([]);
+  const [bids, setBids] = useState<Array<{address: string, amount: string, timestamp: Date, tokens: number}>>([]);
   const [isAuctionActive, setIsAuctionActive] = useState<boolean>(true);
+  
+  // Token data
+  const [initialTokenSupply, setInitialTokenSupply] = useState<number>(1000);
+  const [currentTokenSupply, setCurrentTokenSupply] = useState<number>(1000);
+  const [tokenName, setTokenName] = useState<string>("CRYPTO");
+  
+  // Chart data
+  const [priceChartData, setPriceChartData] = useState<Array<{time: string, price: number}>>([]);
+  const [tokenChartData, setTokenChartData] = useState<Array<{time: string, tokens: number}>>([]);
+
+  // Generate initial chart data
+  useEffect(() => {
+    const generateChartData = () => {
+      const priceData = [];
+      const tokenData = [];
+      
+      // Generate data points for the entire auction duration
+      for (let hour = 0; hour <= duration; hour++) {
+        const elapsedRatio = hour / duration;
+        const price = startPrice - (startPrice - endPrice) * elapsedRatio;
+        const time = `${hour}h`;
+        
+        priceData.push({ time, price: Math.max(endPrice, price) });
+        
+        // For token chart, we'll just use a linear decrease for now as a placeholder
+        // In a real application, this would be based on actual token sales
+        tokenData.push({ time, tokens: initialTokenSupply - (initialTokenSupply * 0.1 * elapsedRatio) });
+      }
+      
+      setPriceChartData(priceData);
+      setTokenChartData(tokenData);
+    };
+    
+    generateChartData();
+  }, [startPrice, endPrice, duration, initialTokenSupply]);
 
   // Mock auction timer
   useEffect(() => {
@@ -63,17 +111,41 @@ const Auction = () => {
     const bidValue = parseFloat(bidAmount);
     if (isNaN(bidValue) || bidValue <= 0) return;
 
+    // Calculate how many tokens this bid would buy at current price
+    const tokensAmount = Math.min(Math.floor(bidValue / currentPrice * 10), currentTokenSupply);
+    
+    if (tokensAmount <= 0) {
+      return; // Not enough to buy any tokens
+    }
+
     const newBid = {
       address: address.slice(0, 6) + "..." + address.slice(-4),
       amount: bidAmount,
-      timestamp: new Date()
+      timestamp: new Date(),
+      tokens: tokensAmount
     };
 
+    // Update token supply
+    setCurrentTokenSupply(prev => Math.max(0, prev - tokensAmount));
+    
+    // Update bids list
     setBids([newBid, ...bids]);
     setBidAmount("0");
+    
+    // Update token chart with latest data
+    const newTime = formatTimeRemaining(timeRemaining);
+    setTokenChartData([...tokenChartData, { 
+      time: newTime, 
+      tokens: currentTokenSupply - tokensAmount 
+    }]);
 
     // If bid is placed at or above the current price, end the auction
     if (bidValue >= currentPrice) {
+      setIsAuctionActive(false);
+    }
+    
+    // If no tokens left, end the auction
+    if (currentTokenSupply - tokensAmount <= 0) {
       setIsAuctionActive(false);
     }
   };
@@ -82,8 +154,25 @@ const Auction = () => {
   const resetAuction = () => {
     setTimeRemaining(duration * 60 * 60);
     setCurrentPrice(startPrice);
+    setCurrentTokenSupply(initialTokenSupply);
     setBids([]);
     setIsAuctionActive(true);
+    
+    // Reset chart data
+    const priceData = [];
+    const tokenData = [];
+    
+    for (let hour = 0; hour <= duration; hour++) {
+      const elapsedRatio = hour / duration;
+      const price = startPrice - (startPrice - endPrice) * elapsedRatio;
+      const time = `${hour}h`;
+      
+      priceData.push({ time, price: Math.max(endPrice, price) });
+      tokenData.push({ time, tokens: initialTokenSupply });
+    }
+    
+    setPriceChartData(priceData);
+    setTokenChartData(tokenData);
   };
 
   // If not on Sepolia, show switch chain message
@@ -121,6 +210,38 @@ const Auction = () => {
             <Gavel className="h-8 w-8 text-purple-500" />
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* Token Information */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg font-medium">Token Information</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="flex flex-col items-center p-4 bg-gray-50 rounded-lg">
+                    <Coins className="h-8 w-8 text-purple-500 mb-2" />
+                    <h4 className="text-sm text-gray-500">Token Name</h4>
+                    <p className="text-xl font-bold">{tokenName}</p>
+                  </div>
+                  
+                  <div className="flex flex-col items-center p-4 bg-gray-50 rounded-lg">
+                    <h4 className="text-sm text-gray-500">Initial Supply</h4>
+                    <p className="text-xl font-bold">{initialTokenSupply.toLocaleString()} {tokenName}</p>
+                  </div>
+                  
+                  <div className="flex flex-col items-center p-4 bg-gray-50 rounded-lg">
+                    <h4 className="text-sm text-gray-500">Remaining Supply</h4>
+                    <p className="text-xl font-bold">{currentTokenSupply.toLocaleString()} {tokenName}</p>
+                    <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+                      <div 
+                        className="bg-purple-600 h-2.5 rounded-full" 
+                        style={{ width: `${(currentTokenSupply / initialTokenSupply) * 100}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          
             {/* Auction Status */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Card>
@@ -167,24 +288,96 @@ const Auction = () => {
               </Card>
             </div>
             
-            {/* Auction Price Chart */}
+            {/* Price Chart */}
             <Card>
-              <CardContent className="pt-6">
-                <div className="mb-6">
-                  <h3 className="text-lg font-medium mb-2">Price Decline</h3>
-                  <div className="h-12 bg-gray-100 rounded-md relative overflow-hidden">
-                    <div 
-                      className="absolute top-0 left-0 h-full bg-gradient-to-r from-purple-600 to-blue-400"
-                      style={{ 
-                        width: `${100 - ((currentPrice - endPrice) / (startPrice - endPrice) * 100)}%`,
-                        transition: 'width 1s linear'
-                      }}
-                    />
-                    <div className="absolute top-0 left-0 w-full h-full flex items-center justify-between px-4">
-                      <span className="text-sm font-medium text-white z-10">{startPrice} ETH</span>
-                      <span className="text-sm font-medium text-gray-800 z-10">{endPrice} ETH</span>
-                    </div>
-                  </div>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg font-medium">Price Over Time</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[300px] w-full">
+                  <ChartContainer 
+                    config={{
+                      price: { color: "#9333ea" }
+                    }}
+                  >
+                    <LineChart data={priceChartData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="time" />
+                      <YAxis 
+                        domain={[0, 'dataMax + 10']}
+                        tickFormatter={(value) => `${value} ETH`}
+                      />
+                      <Tooltip 
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            return (
+                              <div className="bg-white p-2 border rounded shadow-md">
+                                <p className="text-sm">{`Time: ${payload[0].payload.time}`}</p>
+                                <p className="text-sm font-semibold">{`Price: ${payload[0].value} ETH`}</p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                      />
+                      <Legend />
+                      <Line 
+                        type="monotone" 
+                        dataKey="price" 
+                        stroke="#9333ea" 
+                        strokeWidth={2} 
+                        name="Price (ETH)" 
+                        dot={false}
+                      />
+                    </LineChart>
+                  </ChartContainer>
+                </div>
+              </CardContent>
+            </Card>
+            
+            {/* Token Supply Chart */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg font-medium">Token Supply Over Time</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[300px] w-full">
+                  <ChartContainer 
+                    config={{
+                      tokens: { color: "#4f46e5" }
+                    }}
+                  >
+                    <AreaChart data={tokenChartData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="time" />
+                      <YAxis 
+                        domain={[0, initialTokenSupply * 1.1]}
+                        tickFormatter={(value) => `${value} ${tokenName}`}
+                      />
+                      <Tooltip 
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            return (
+                              <div className="bg-white p-2 border rounded shadow-md">
+                                <p className="text-sm">{`Time: ${payload[0].payload.time}`}</p>
+                                <p className="text-sm font-semibold">{`Tokens: ${payload[0].value} ${tokenName}`}</p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                      />
+                      <Legend />
+                      <Area 
+                        type="monotone" 
+                        dataKey="tokens" 
+                        stroke="#4f46e5" 
+                        fill="#4f46e5" 
+                        fillOpacity={0.3} 
+                        name={`Available ${tokenName}`}
+                      />
+                    </AreaChart>
+                  </ChartContainer>
                 </div>
               </CardContent>
             </Card>
@@ -205,22 +398,33 @@ const Auction = () => {
                         value={bidAmount}
                         onChange={(e) => setBidAmount(e.target.value)}
                         placeholder="Enter amount"
-                        disabled={!isAuctionActive}
+                        disabled={!isAuctionActive || currentTokenSupply <= 0}
                         min="0"
                         step="0.01"
                       />
                       <Button 
                         onClick={placeBid} 
-                        disabled={!isAuctionActive || !address}
+                        disabled={!isAuctionActive || !address || currentTokenSupply <= 0}
                         className="bg-purple-600 hover:bg-purple-700"
                       >
                         Place Bid
                       </Button>
                     </div>
                     {isAuctionActive && (
-                      <p className="text-sm text-gray-500 mt-1">
-                        Bid at the current price of {currentPrice.toFixed(2)} ETH to win instantly
-                      </p>
+                      <div className="mt-2 space-y-1">
+                        <p className="text-sm text-gray-500">
+                          Bid at the current price of {currentPrice.toFixed(2)} ETH to win instantly
+                        </p>
+                        <p className="text-sm text-purple-600">
+                          You will receive approximately {
+                            isNaN(parseFloat(bidAmount)) ? 0 : 
+                            Math.min(
+                              Math.floor((parseFloat(bidAmount) / currentPrice) * 10), 
+                              currentTokenSupply
+                            )
+                          } {tokenName} tokens
+                        </p>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -239,6 +443,7 @@ const Auction = () => {
                       <TableRow>
                         <TableHead>Bidder</TableHead>
                         <TableHead>Amount (ETH)</TableHead>
+                        <TableHead>Tokens</TableHead>
                         <TableHead>Time</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -247,6 +452,7 @@ const Auction = () => {
                         <TableRow key={index}>
                           <TableCell>{bid.address}</TableCell>
                           <TableCell>{bid.amount}</TableCell>
+                          <TableCell>{bid.tokens} {tokenName}</TableCell>
                           <TableCell>{bid.timestamp.toLocaleTimeString()}</TableCell>
                         </TableRow>
                       ))}
@@ -266,7 +472,7 @@ const Auction = () => {
                 <CardTitle className="text-lg font-medium">Auction Controls</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="start-price">Start Price (ETH)</Label>
@@ -314,6 +520,41 @@ const Auction = () => {
                         />
                         <span className="w-12 text-center">{duration}</span>
                       </div>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="initial-supply">Initial Token Supply</Label>
+                      <div className="flex items-center space-x-2">
+                        <Slider
+                          id="initial-supply"
+                          value={[initialTokenSupply]}
+                          min={100}
+                          max={10000}
+                          step={100}
+                          onValueChange={(values) => {
+                            setInitialTokenSupply(values[0]);
+                            if (!isAuctionActive) {
+                              setCurrentTokenSupply(values[0]);
+                            }
+                          }}
+                          disabled={isAuctionActive}
+                        />
+                        <span className="w-20 text-center">{initialTokenSupply}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="token-name">Token Name</Label>
+                      <Input
+                        id="token-name"
+                        value={tokenName}
+                        onChange={(e) => setTokenName(e.target.value)}
+                        placeholder="Token Name"
+                        disabled={isAuctionActive}
+                        maxLength={10}
+                      />
                     </div>
                   </div>
                   
