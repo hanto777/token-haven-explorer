@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { getInstance } from "@/lib/fhevm/fhevmjs";
 import { reencryptEuint64 } from "@/lib/reencrypt";
@@ -24,9 +25,10 @@ export const useEncryptedBalance = ({
       if (!handle) throw new Error("Balance not found");
 
       const instance = getInstance();
+      // Use type assertion to safely pass the instance
       const clearBalance = await reencryptEuint64(
         signer,
-        instance,
+        instance as any, // Use type assertion to resolve the type error
         BigInt(handle),
         contractAddress
       );
