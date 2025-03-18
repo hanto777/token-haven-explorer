@@ -184,22 +184,7 @@ const Auction = () => {
             
             {/* Recent Bids */}
             <BidHistory bids={bids} tokenName={tokenName} />
-            
-            {/* Admin Controls */}
-            <AuctionControls
-              isAuctionActive={isAuctionActive}
-              startPrice={startPrice}
-              setStartPrice={setStartPrice}
-              endPrice={endPrice}
-              setEndPrice={setEndPrice}
-              duration={duration}
-              setDuration={setDuration}
-              initialTokenSupply={initialTokenSupply}
-              setInitialTokenSupply={setInitialTokenSupply}
-              tokenName={tokenName}
-              setTokenName={setTokenName}
-              resetAuction={resetAuction}
-            />
+
           </CardContent>
         </Card>
       </div>

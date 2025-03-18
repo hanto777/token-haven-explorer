@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer } from "@/components/ui/chart";
 import {
@@ -22,20 +21,20 @@ const PriceChart = ({ data }: PriceChartProps) => {
         <CardTitle className="text-lg font-medium">Price Over Time</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="h-[300px] w-full">
-          <ChartContainer 
+        <div className="h-[430px] w-full">
+          <ChartContainer
             config={{
-              price: { color: "#9333ea" }
+              price: { color: "#9333ea" },
             }}
           >
             <LineChart data={data}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="time" />
-              <YAxis 
-                domain={[0, 'dataMax + 10']}
+              <YAxis
+                domain={[0, "dataMax + 10"]}
                 tickFormatter={(value) => `${value} ETH`}
               />
-              <Tooltip 
+              <Tooltip
                 content={({ active, payload }) => {
                   if (active && payload && payload.length) {
                     return (
@@ -49,12 +48,12 @@ const PriceChart = ({ data }: PriceChartProps) => {
                 }}
               />
               <Legend />
-              <Line 
-                type="monotone" 
-                dataKey="price" 
-                stroke="#9333ea" 
-                strokeWidth={2} 
-                name="Price (ETH)" 
+              <Line
+                type="monotone"
+                dataKey="price"
+                stroke="#9333ea"
+                strokeWidth={2}
+                name="Price (ETH)"
                 dot={false}
               />
             </LineChart>

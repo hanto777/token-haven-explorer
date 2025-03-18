@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer } from "@/components/ui/chart";
 import {
@@ -17,31 +16,33 @@ interface TokenSupplyChartProps {
   initialTokenSupply: number;
 }
 
-const TokenSupplyChart = ({ 
-  data, 
+const TokenSupplyChart = ({
+  data,
   tokenName,
-  initialTokenSupply 
+  initialTokenSupply,
 }: TokenSupplyChartProps) => {
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-medium">Token Supply Over Time</CardTitle>
+        <CardTitle className="text-lg font-medium">
+          Token Supply Over Time
+        </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="h-[300px] w-full">
-          <ChartContainer 
+        <div className="h-[430px] w-full">
+          <ChartContainer
             config={{
-              tokens: { color: "#4f46e5" }
+              tokens: { color: "#4f46e5" },
             }}
           >
             <AreaChart data={data}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="time" />
-              <YAxis 
+              <YAxis
                 domain={[0, initialTokenSupply * 1.1]}
                 tickFormatter={(value) => `${value} ${tokenName}`}
               />
-              <Tooltip 
+              <Tooltip
                 content={({ active, payload }) => {
                   if (active && payload && payload.length) {
                     return (
@@ -55,12 +56,12 @@ const TokenSupplyChart = ({
                 }}
               />
               <Legend />
-              <Area 
-                type="monotone" 
-                dataKey="tokens" 
-                stroke="#4f46e5" 
-                fill="#4f46e5" 
-                fillOpacity={0.3} 
+              <Area
+                type="monotone"
+                dataKey="tokens"
+                stroke="#4f46e5"
+                fill="#4f46e5"
+                fillOpacity={0.3}
                 name={`Available ${tokenName}`}
               />
             </AreaChart>
