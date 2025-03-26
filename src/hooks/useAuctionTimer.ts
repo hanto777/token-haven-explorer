@@ -2,26 +2,30 @@
 import { useState, useEffect } from "react";
 
 interface UseAuctionTimerProps {
+  expiresAt: number;
+  startAt: number;
+  discountRate: number;
   isAuctionActive: boolean;
-  initialDuration: number;
-  startPrice: number;
-  endPrice: number;
+  refreshCurrentPrice: () => void;
+  refreshTokensLeft: () => void;
 }
 
 interface UseAuctionTimerReturn {
   timeRemaining: number;
-  currentPrice: number;
+  stepTimeRemaining: number;
   formatTimeRemaining: (seconds: number) => string;
 }
 
 export const useAuctionTimer = ({
+  expiresAt,
+  startAt,
+  discountRate,
   isAuctionActive,
-  initialDuration,
-  startPrice,
-  endPrice
+  refreshCurrentPrice,
+  refreshTokensLeft,
 }: UseAuctionTimerProps): UseAuctionTimerReturn => {
-  const [timeRemaining, setTimeRemaining] = useState<number>(initialDuration * 60 * 60);
-  const [currentPrice, setCurrentPrice] = useState<number>(startPrice);
+    const [auctionTimeRemaining, setAuctionTimeRemaining] = useState<number>(0);
+    const [stepTimeRemaining, setStepTimeRemaining] = useState<number>(0);
 
   // Format time remaining in HH:MM:SS
   const formatTimeRemaining = (seconds: number) => {
@@ -31,12 +35,23 @@ export const useAuctionTimer = ({
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  useEffect(() => {
+    if(!isNaN(startAt) && !isNaN(expiresAt)) {
+      // Calculate time remaining
+      const currentTime = Math.floor(Date.now() / 1000);
+      const remainingTime = Math.max(0, expiresAt - currentTime)
+
+      setAuctionTimeRemaining(remainingTime)
+      setStepTimeRemaining(remainingTime / discountRate)
+    }
+  }, [startAt, expiresAt, discountRate])
+
   // Update timer and price
   useEffect(() => {
     if (!isAuctionActive) return;
     
     const timer = setInterval(() => {
-      setTimeRemaining((prev) => {
+      setAuctionTimeRemaining((prev) => {
         if (prev <= 0) {
           clearInterval(timer);
           return 0;
@@ -44,19 +59,16 @@ export const useAuctionTimer = ({
         return prev - 1;
       });
 
-      // Calculate current price based on time elapsed
-      const totalDuration = initialDuration * 60 * 60;
-      const elapsedRatio = 1 - (timeRemaining / totalDuration);
-      const newPrice = startPrice - (startPrice - endPrice) * elapsedRatio;
-      setCurrentPrice(Math.max(endPrice, newPrice));
+      refreshCurrentPrice()
+      refreshTokensLeft()
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [timeRemaining, startPrice, endPrice, initialDuration, isAuctionActive]);
+  }, [auctionTimeRemaining, isAuctionActive, refreshCurrentPrice, refreshTokensLeft]);
 
   return {
-    timeRemaining,
-    currentPrice,
-    formatTimeRemaining
+    timeRemaining: auctionTimeRemaining,
+    formatTimeRemaining,
+    stepTimeRemaining,
   };
 };

@@ -1,19 +1,18 @@
-export const confidentialErc20Abi = [
+export const confidentialWETHAbi = [
   {
-    inputs: [
-      {
-        internalType: "string",
-        name: "name_",
-        type: "string",
-      },
-      {
-        internalType: "string",
-        name: "symbol_",
-        type: "string",
-      },
-    ],
+    inputs: [],
     stateMutability: "nonpayable",
     type: "constructor",
+  },
+  {
+    inputs: [],
+    name: "AmountTooHigh",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "CannotTransferOrUnwrap",
+    type: "error",
   },
   {
     inputs: [
@@ -103,44 +102,22 @@ export const confidentialErc20Abi = [
   },
   {
     inputs: [],
-    name: "ErrorIndexInvalid",
+    name: "ETHTransferFail",
     type: "error",
   },
   {
     inputs: [],
-    name: "ErrorIndexIsNull",
+    name: "MaxDecryptionDelayTooHigh",
     type: "error",
   },
   {
-    inputs: [
-      {
-        internalType: "address",
-        name: "owner",
-        type: "address",
-      },
-    ],
-    name: "OwnableInvalidOwner",
-    type: "error",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "account",
-        type: "address",
-      },
-    ],
-    name: "OwnableUnauthorizedAccount",
+    inputs: [],
+    name: "ReentrancyGuardReentrantCall",
     type: "error",
   },
   {
     inputs: [],
     name: "TFHESenderNotAllowed",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "TotalNumberErrorCodesEqualToZero",
     type: "error",
   },
   {
@@ -174,63 +151,6 @@ export const confidentialErc20Abi = [
       {
         indexed: true,
         internalType: "address",
-        name: "to",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint64",
-        name: "amount",
-        type: "uint64",
-      },
-    ],
-    name: "Mint",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "previousOwner",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "newOwner",
-        type: "address",
-      },
-    ],
-    name: "OwnershipTransferStarted",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "previousOwner",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "newOwner",
-        type: "address",
-      },
-    ],
-    name: "OwnershipTransferred",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
         name: "from",
         type: "address",
       },
@@ -251,11 +171,80 @@ export const confidentialErc20Abi = [
     type: "event",
   },
   {
-    inputs: [],
-    name: "acceptOwnership",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint64",
+        name: "amount",
+        type: "uint64",
+      },
+    ],
+    name: "Unwrap",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint64",
+        name: "amount",
+        type: "uint64",
+      },
+    ],
+    name: "UnwrapFailNotEnoughBalance",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint64",
+        name: "amount",
+        type: "uint64",
+      },
+    ],
+    name: "UnwrapFailTransferFail",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint64",
+        name: "amount",
+        type: "uint64",
+      },
+    ],
+    name: "Wrap",
+    type: "event",
   },
   {
     inputs: [
@@ -354,6 +343,24 @@ export const confidentialErc20Abi = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "requestId",
+        type: "uint256",
+      },
+      {
+        internalType: "bool",
+        name: "canUnwrap",
+        type: "bool",
+      },
+    ],
+    name: "callbackUnwrap",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "decimals",
     outputs: [
@@ -369,38 +376,20 @@ export const confidentialErc20Abi = [
   {
     inputs: [
       {
-        internalType: "uint256",
-        name: "transferId",
-        type: "uint256",
+        internalType: "address",
+        name: "account",
+        type: "address",
       },
     ],
-    name: "getErrorCodeForTransferId",
+    name: "isAccountRestricted",
     outputs: [
       {
-        internalType: "euint8",
-        name: "errorCode",
-        type: "uint256",
+        internalType: "bool",
+        name: "isRestricted",
+        type: "bool",
       },
     ],
     stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "to",
-        type: "address",
-      },
-      {
-        internalType: "uint64",
-        name: "amount",
-        type: "uint64",
-      },
-    ],
-    name: "mint",
-    outputs: [],
-    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -414,39 +403,6 @@ export const confidentialErc20Abi = [
       },
     ],
     stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "owner",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "pendingOwner",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "renounceOwnership",
-    outputs: [],
-    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -594,14 +550,49 @@ export const confidentialErc20Abi = [
   {
     inputs: [
       {
-        internalType: "address",
-        name: "newOwner",
-        type: "address",
+        internalType: "uint64",
+        name: "amount",
+        type: "uint64",
       },
     ],
-    name: "transferOwnership",
+    name: "unwrap",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "requestId",
+        type: "uint256",
+      },
+    ],
+    name: "unwrapRequests",
+    outputs: [
+      {
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+      {
+        internalType: "uint64",
+        name: "amount",
+        type: "uint64",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "wrap",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    stateMutability: "payable",
+    type: "receive",
   },
 ];

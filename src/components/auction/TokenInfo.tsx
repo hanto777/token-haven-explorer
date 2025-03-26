@@ -6,12 +6,14 @@ interface TokenInfoProps {
   tokenName: string;
   initialTokenSupply: number;
   currentTokenSupply: number;
+  totalTokenSupply: number;
 }
 
 const TokenInfo = ({
   tokenName,
   initialTokenSupply,
   currentTokenSupply,
+  totalTokenSupply,
 }: TokenInfoProps) => {
   return (
     <Card>
@@ -27,8 +29,9 @@ const TokenInfo = ({
           </div>
           
           <div className="flex flex-col items-center p-4 bg-gray-50 rounded-lg">
-            <h4 className="text-sm text-gray-500">Initial Supply</h4>
+            <h4 className="text-sm text-gray-500">Auction initial Supply</h4>
             <p className="text-xl font-bold">{initialTokenSupply.toLocaleString()} {tokenName}</p>
+            <p className="text-l text-gray-500">(total supply {totalTokenSupply.toLocaleString()} {tokenName})</p>
           </div>
           
           <div className="flex flex-col items-center p-4 bg-gray-50 rounded-lg">

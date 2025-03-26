@@ -3,11 +3,10 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { WagmiProvider, createConfig, http, createStorage } from "wagmi";
-import { mainnet, polygon, sepolia } from "wagmi/chains";
-import { injected, walletConnect } from "wagmi/connectors";
+import { WagmiProvider } from "wagmi";
 import { WalletProvider } from "@/hooks/useWallet";
 import { TokenProvider } from "@/providers/TokenProvider";
+import { wagmiConfig } from "@/providers/wagmiConfig";
 import { AnimatePresence } from "framer-motion";
 import { NetworkProvider } from "@/hooks/useNetwork";
 import { FhevmProvider } from "@/contexts/FhevmContext";
@@ -20,28 +19,13 @@ import Swap from "./pages/Swap";
 import NotFound from "./pages/NotFound";
 import Auction from "./pages/Auction";
 
-// Set up wagmi config
-const config = createConfig({
-  chains: [mainnet, sepolia, polygon],
-  transports: {
-    [mainnet.id]: http(),
-    [sepolia.id]: http(),
-    [polygon.id]: http(),
-  },
-  connectors: [
-    injected(),
-    walletConnect({
-      projectId: import.meta.env.VITE_WALLET_CONNECT_ID, // Get from environment variables
-    }),
-  ],
-  storage: createStorage({ storage: window.localStorage }),
-});
-
 const queryClient = new QueryClient();
 
 function App() {
+  if (!import.meta.env.VITE_KMS_ADDRESS)
+    throw new Error("Missing VITE_KMS_ADDRESS environment variable");
   return (
-    <WagmiProvider config={config}>
+    <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <NetworkProvider>

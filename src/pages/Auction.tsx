@@ -1,132 +1,113 @@
-
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useAccount, useChainId } from "wagmi";
 import { sepolia } from "wagmi/chains";
 import { Gavel } from "lucide-react";
 
 // Import components
+import { useToast } from "@/components/ui/use-toast";
 import TokenInfo from "@/components/auction/TokenInfo";
 import AuctionStatus from "@/components/auction/AuctionStatus";
 import PriceChart from "@/components/auction/PriceChart";
 import TokenSupplyChart from "@/components/auction/TokenSupplyChart";
 import BidForm from "@/components/auction/BidForm";
 import BidHistory from "@/components/auction/BidHistory";
-import AuctionControls from "@/components/auction/AuctionControls";
 import WrongNetworkMessage from "@/components/auction/WrongNetworkMessage";
 
 // Import hooks
 import { useAuctionTimer } from "@/hooks/useAuctionTimer";
 import { useAuctionChartData } from "@/hooks/useAuctionChartData";
-
-interface Bid {
-  address: string;
-  amount: string;
-  timestamp: Date;
-  tokens: number;
-}
+import { useAuctionToken } from "@/hooks/use-auction-token";
+import { useAuctionPaymentToken } from "@/hooks/use-auction-payment-token";
+import { useAuctionCurrentPrice, useAuctionDetails, useAuctionTokensLeft } from "@/hooks/use-auction";
+import { useEncryptedBid } from "@/hooks/useEncryptedBid";
+import { useBidsActivity } from "@/hooks/use-bids-activity";
 
 const Auction = () => {
   const { address } = useAccount();
   const chainId = useChainId();
   const isOnSepolia = chainId === sepolia.id;
+  const { toast } = useToast();
+  
+  const { tokenName, totalTokenSupply } = useAuctionToken()
+  const { paymentTokenSymbol } = useAuctionPaymentToken()
+  const { refreshCurrentPrice, currentPrice } = useAuctionCurrentPrice()
+  const { startPrice, isAuctionActive, initialTokenSupply, startAt, expiresAt, reservePrice, discountRate } = useAuctionDetails()
 
   // Dutch auction state
-  const [startPrice, setStartPrice] = useState<number>(100);
   const [endPrice, setEndPrice] = useState<number>(10);
-  const [duration, setDuration] = useState<number>(24); // hours
+
   const [bidAmount, setBidAmount] = useState<string>("0");
-  const [bids, setBids] = useState<Bid[]>([]);
-  const [isAuctionActive, setIsAuctionActive] = useState<boolean>(true);
+  const { bids } = useBidsActivity();
   
   // Token data
-  const [initialTokenSupply, setInitialTokenSupply] = useState<number>(1000);
-  const [currentTokenSupply, setCurrentTokenSupply] = useState<number>(1000);
-  const [tokenName, setTokenName] = useState<string>("CRYPTO");
+  const { tokensLeft: currentTokenSupply, refreshTokensLeft } = useAuctionTokensLeft();
   
   // Use custom hooks
-  const { timeRemaining, currentPrice, formatTimeRemaining } = useAuctionTimer({
+  // TODO: use discountRate to calculate steps
+  const { timeRemaining, formatTimeRemaining } = useAuctionTimer({
+    startAt,
+    expiresAt,
+    discountRate,
     isAuctionActive,
-    initialDuration: duration,
-    startPrice,
-    endPrice
+    refreshCurrentPrice,
+    refreshTokensLeft,
   });
 
   const { priceChartData, tokenChartData, setTokenChartData } = useAuctionChartData({
     startPrice,
     endPrice,
-    duration,
-    initialTokenSupply
+    duration: (expiresAt - startAt) / 3600, // TODO fix
+    initialTokenSupply,
+    reservePrice,
   });
 
+const {
+    bid,
+    isEncrypting,
+    isPending,
+    isConfirming,
+    isConfirmed,
+    transferHash,
+    transferError,
+  } = useEncryptedBid({
+    userAddress: address,
+    chain: sepolia,
+  });
   // Place a bid
-  const placeBid = () => {
-    if (!isAuctionActive || !address) return;
-
-    const bidValue = parseFloat(bidAmount);
-    if (isNaN(bidValue) || bidValue <= 0) return;
-
-    // Calculate how many tokens this bid would buy at current price
-    const tokensAmount = Math.min(Math.floor(bidValue / currentPrice * 10), currentTokenSupply);
-    
-    if (tokensAmount <= 0) {
-      return; // Not enough to buy any tokens
-    }
-
-    const newBid = {
-      address: address.slice(0, 6) + "..." + address.slice(-4),
-      amount: bidAmount,
-      timestamp: new Date(),
-      tokens: tokensAmount
-    };
-
-    // Update token supply
-    setCurrentTokenSupply(prev => Math.max(0, prev - tokensAmount));
-    
-    // Update bids list
-    setBids([newBid, ...bids]);
-    setBidAmount("0");
-    
-    // Update token chart with latest data
-    const newTime = formatTimeRemaining(timeRemaining);
-    setTokenChartData([...tokenChartData, { 
-      time: newTime, 
-      tokens: currentTokenSupply - tokensAmount 
-    }]);
-
-    // If bid is placed at or above the current price, end the auction
-    if (bidValue >= currentPrice) {
-      setIsAuctionActive(false);
-    }
-    
-    // If no tokens left, end the auction
-    if (currentTokenSupply - tokensAmount <= 0) {
-      setIsAuctionActive(false);
-    }
+  const placeBid = async () => {
+    console.log(`Placing bid...${bidAmount}`);
+    bid(bidAmount);
   };
 
-  // Reset auction
-  const resetAuction = () => {
-    const totalDuration = duration * 60 * 60;
-    setIsAuctionActive(true);
-    setCurrentTokenSupply(initialTokenSupply);
-    setBids([]);
-    
-    // Reset chart data
-    const priceData = [];
-    const tokenData = [];
-    
-    for (let hour = 0; hour <= duration; hour++) {
-      const elapsedRatio = hour / duration;
-      const price = startPrice - (startPrice - endPrice) * elapsedRatio;
-      const time = `${hour}h`;
-      
-      priceData.push({ time, price: Math.max(endPrice, price) });
-      tokenData.push({ time, tokens: initialTokenSupply });
-    }
-    
-    setTokenChartData(tokenData);
-  };
+// Add useEffect to watch transfer states
+useEffect(() => {
+  if (isEncrypting) {
+    toast({
+      title: "Encrypting Transaction",
+      description: "Generating encrypted proof for your transaction...",
+    });
+  }
+}, [isEncrypting, toast]);
+
+
+useEffect(() => {
+  if (isConfirming) {
+    toast({
+      title: "Confirming Transaction",
+      description: "Waiting for confirmation...",
+    });
+  }
+}, [isConfirming, toast]);
+
+useEffect(() => {
+  if (isConfirmed) {
+    toast({
+      title: "Transfer Complete",
+      description: `Successfully bid ${bidAmount} ${paymentTokenSymbol}`,
+    });
+  }
+}, [isConfirmed, bidAmount, toast, paymentTokenSymbol]);
 
   // If not on Sepolia, show switch chain message
   if (!isOnSepolia) {
@@ -149,12 +130,14 @@ const Auction = () => {
             <TokenInfo
               tokenName={tokenName}
               initialTokenSupply={initialTokenSupply}
+              totalTokenSupply={totalTokenSupply}
               currentTokenSupply={currentTokenSupply}
             />
           
             {/* Auction Status */}
             <AuctionStatus 
               currentPrice={currentPrice}
+              paymentTokenSymbol={paymentTokenSymbol}
               timeRemaining={timeRemaining}
               isAuctionActive={isAuctionActive}
               formatTimeRemaining={formatTimeRemaining}
@@ -180,10 +163,12 @@ const Auction = () => {
               address={address}
               currentPrice={currentPrice}
               tokenName={tokenName}
+              isBidding={isEncrypting || isPending || isConfirming}
+              paymentTokenSymbol={paymentTokenSymbol}
             />
             
             {/* Recent Bids */}
-            <BidHistory bids={bids} tokenName={tokenName} />
+            <BidHistory bids={bids} tokenName={tokenName} paymentTokenSymbol={paymentTokenSymbol}/>
 
           </CardContent>
         </Card>

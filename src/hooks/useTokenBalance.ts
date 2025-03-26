@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useBalance, useToken, useReadContract, useChainId } from "wagmi";
+import { useBalance, useReadContract, useChainId } from "wagmi";
 import { formatUnits } from "viem";
 import { mainnet, sepolia, polygon } from "wagmi/chains";
 

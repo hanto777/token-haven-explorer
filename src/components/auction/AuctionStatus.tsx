@@ -4,6 +4,7 @@ import { ArrowDown, Clock, Info } from "lucide-react";
 
 interface AuctionStatusProps {
   currentPrice: number;
+  paymentTokenSymbol: string;
   timeRemaining: number;
   isAuctionActive: boolean;
   formatTimeRemaining: (seconds: number) => string;
@@ -11,6 +12,7 @@ interface AuctionStatusProps {
 
 const AuctionStatus = ({
   currentPrice,
+  paymentTokenSymbol,
   timeRemaining,
   isAuctionActive,
   formatTimeRemaining,
@@ -21,7 +23,7 @@ const AuctionStatus = ({
         <CardContent className="pt-6">
           <div className="text-center">
             <p className="text-sm text-gray-500 mb-1">Current Price</p>
-            <p className="text-3xl font-bold text-purple-600">{currentPrice.toFixed(2)} ETH</p>
+            <p className="text-3xl font-bold text-purple-600">{currentPrice.toFixed(2)} {paymentTokenSymbol}</p>
             <div className="flex items-center justify-center mt-2 text-gray-500">
               <ArrowDown className="h-4 w-4 mr-1" />
               <span className="text-xs">Decreasing</span>
@@ -37,7 +39,8 @@ const AuctionStatus = ({
             <p className="text-3xl font-bold text-blue-600">{formatTimeRemaining(timeRemaining)}</p>
             <div className="flex items-center justify-center mt-2 text-gray-500">
               <Clock className="h-4 w-4 mr-1" />
-              <span className="text-xs">Until end price</span>
+              <span className="text-xs">Until auction end</span>
+              {/* TODO: should be "Until next price drop", but this needs some rework on useAuctionTimer */}
             </div>
           </div>
         </CardContent>

@@ -1,8 +1,8 @@
 import { mainnet, sepolia, polygon } from "wagmi/chains";
 import {
-  PAYMENT_TOKEN_ADDRESS,
-  AUCTION_TOKEN_ADDRESS,
-} from "./confidentialErc20Abi";
+  VITE_PAYMENT_TOKEN_CONTRACT_ADDRESS,
+  VITE_AUCTION_TOKEN_CONTRACT_ADDRESS,
+} from "@/config/env";
 
 // Get the default native token based on chainId
 export const getNativeToken = (chainId: number) => {
@@ -104,25 +104,27 @@ export const getDefaultTokens = (chainId: number) => {
         },
         {
           id: "4",
-          symbol: "cUSDC",
-          name: "Confidential USD Coin",
-          address: PAYMENT_TOKEN_ADDRESS,
+          symbol: "WETHc",
+          name: "Confidential Wrapped Ether",
+          address: VITE_PAYMENT_TOKEN_CONTRACT_ADDRESS,
           decimals: 6,
-          isEncrypted: true,
-          isDecrypted: false,
-          isConfidential: true,
-          logo: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png",
-        },
-        {
-          id: "5",
-          symbol: "cZAMA",
-          name: "Confidential Z Token",
-          address: AUCTION_TOKEN_ADDRESS,
-          decimals: 6,
+          isAuctionPaymentToken: true,
           isEncrypted: true,
           isDecrypted: false,
           isConfidential: true,
           logo: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/info/logo.png",
+        },
+        {
+          id: "5",
+          symbol: "AT",
+          name: "Auction Token",
+          address: VITE_AUCTION_TOKEN_CONTRACT_ADDRESS,
+          decimals: 6,
+          isAuctionToken: true,
+          isEncrypted: true,
+          isDecrypted: false,
+          isConfidential: true,
+          logo: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png",
         },
       ];
     case polygon.id:

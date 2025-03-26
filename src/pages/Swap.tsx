@@ -1,4 +1,3 @@
-
 import PageTransition from "@/components/layout/PageTransition";
 import SwapForm from "@/components/transfers/SwapForm";
 import { useWallet } from "@/hooks/useWallet";
@@ -21,7 +20,9 @@ const Swap = () => {
           <span className="inline-block text-xs font-medium bg-primary/10 text-primary px-3 py-1 rounded-full mb-2">
             Swap
           </span>
-          <h1 className="text-4xl font-semibold tracking-tight mb-3">Swap to Confidential</h1>
+          <h1 className="text-4xl font-semibold tracking-tight mb-3">
+            Swap to Confidential
+          </h1>
           <p className="text-muted-foreground text-balance max-w-xl mx-auto">
             Swap your tokens to confidential versions for enhanced privacy.
           </p>
@@ -43,7 +44,11 @@ const Swap = () => {
             <p className="text-muted-foreground text-center max-w-md mb-6">
               Connect your wallet to swap tokens to confidential versions.
             </p>
-            <Button size="lg" className="mt-2" onClick={() => openConnectModal && openConnectModal()}>
+            <Button
+              size="lg"
+              className="mt-2"
+              onClick={() => openConnectModal && openConnectModal()}
+            >
               Connect Wallet
             </Button>
           </motion.div>

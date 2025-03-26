@@ -7,7 +7,7 @@ import { mainnet, sepolia, polygon, optimism, arbitrum } from 'wagmi/chains';
 import { toast } from 'sonner';
 import { erc20Abi } from '@/utils/erc20Abi';
 import { confidentialErc20Abi } from '@/utils/confidentialErc20Abi';
-import { parseUnits } from 'viem';
+import { Chain, parseUnits } from 'viem';
 
 export type { Token, TokenContextType };
 export { default as TokenProvider } from '@/providers/TokenProvider';
@@ -46,7 +46,7 @@ export const useTokens = () => {
       const parsedAmount = parseUnits(amount, decimals);
       
       // Get the appropriate chain object based on chainId
-      let chain;
+      let chain: Chain;
       switch (chainId) {
         case mainnet.id:
           chain = mainnet;

@@ -13,6 +13,8 @@ interface BidFormProps {
   address?: string;
   currentPrice: number;
   tokenName: string;
+  isBidding: boolean;
+  paymentTokenSymbol: string;
 }
 
 const BidForm = ({
@@ -24,14 +26,16 @@ const BidForm = ({
   address,
   currentPrice,
   tokenName,
+  isBidding,
+  paymentTokenSymbol
 }: BidFormProps) => {
-  const estimatedTokens = isNaN(parseFloat(bidAmount)) 
-    ? 0 
+  const estimatedTokens = isNaN(parseFloat(bidAmount))
+    ? 0
     : Math.min(
-        Math.floor((parseFloat(bidAmount) / currentPrice) * 10), 
-        currentTokenSupply
-      );
-
+      Math.floor((parseFloat(bidAmount) / currentPrice)),
+      currentTokenSupply
+    );
+  const canBid = isAuctionActive && currentTokenSupply > 0 && !isBidding;
   return (
     <Card>
       <CardHeader>
@@ -40,7 +44,7 @@ const BidForm = ({
       <CardContent>
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="bid-amount">Bid Amount (ETH)</Label>
+            <Label htmlFor="bid-amount">Bid Amount ({paymentTokenSymbol})</Label>
             <div className="flex space-x-2">
               <Input
                 id="bid-amount"
@@ -48,26 +52,35 @@ const BidForm = ({
                 value={bidAmount}
                 onChange={(e) => setBidAmount(e.target.value)}
                 placeholder="Enter amount"
-                disabled={!isAuctionActive || currentTokenSupply <= 0}
+                disabled={!canBid}
                 min="0"
-                step="0.01"
+                step="100" // TODO: adapt from current price
               />
-              <Button 
-                onClick={placeBid} 
-                disabled={!isAuctionActive || !address || currentTokenSupply <= 0}
+              <Button
+                onClick={placeBid}
+                disabled={!address || !canBid}
                 className="bg-purple-600 hover:bg-purple-700"
               >
                 Place Bid
               </Button>
             </div>
             {isAuctionActive && (
-              <div className="mt-2 space-y-1">
-                <p className="text-sm text-gray-500">
-                  Bid at the current price of {currentPrice.toFixed(2)} ETH to win instantly
-                </p>
-                <p className="text-sm text-purple-600">
-                  You will receive approximately {estimatedTokens} {tokenName} tokens
-                </p>
+              <div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs h-auto py-1"
+                  onClick={() => console.log('not implemented')}
+                  disabled={!canBid}
+                >
+                  Use Max
+                </Button>
+                <div className="mt-2 space-y-1">
+                  <p className="text-sm text-purple-600">
+                    You will receive approximately {estimatedTokens} {tokenName} tokens
+                  </p>
+                </div>
               </div>
             )}
           </div>

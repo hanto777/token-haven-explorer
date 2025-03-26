@@ -12,6 +12,8 @@ export interface Token {
   address?: string;
   decimals?: number;
   isConfidential?: boolean;
+  isAuctionPaymentToken?: boolean;
+  isAuctionToken?: boolean;
 }
 
 export interface TokenContextType {

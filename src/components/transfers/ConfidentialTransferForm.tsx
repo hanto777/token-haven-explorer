@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { sepolia } from "wagmi/chains";
 import { useNetwork } from "@/hooks/useNetwork";
 import { useToast } from "@/components/ui/use-toast";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import NoConfidentialTokensMessage from "./confidential/NoConfidentialTokensMessage";
 import ConfidentialTransferFormFields from "./confidential/ConfidentialTransferFormFields";
 import TransferSuccessMessage from "./TransferSuccessMessage";

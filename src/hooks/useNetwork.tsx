@@ -1,7 +1,7 @@
 
 import { createContext, useContext, ReactNode, useState, useEffect } from "react";
 import { useConfig, useChainId, useSwitchChain, useAccount } from "wagmi";
-import { mainnet, sepolia, polygon, } from "wagmi/chains";
+import { mainnet, sepolia, polygon } from "wagmi/chains";
 import { toast } from "sonner";
 
 // Import Chain as a type specifically
@@ -49,7 +49,7 @@ export const NetworkProvider = ({ children }: { children: ReactNode }) => {
     } else {
       setCurrentChain(undefined);
     }
-  }, [chainId, isConnected, config.chains]);
+  }, [chainId, isConnected, config.chains, supportedNetworks]);
   
   const switchNetwork = async (chainId: number) => {
     if (!isConnected) {

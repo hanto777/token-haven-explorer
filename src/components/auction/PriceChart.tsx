@@ -8,13 +8,21 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
+  ReferenceLine,
 } from "recharts";
 
 interface PriceChartProps {
-  data: Array<{ time: string; price: number }>;
+  data: Array<{ time: string; price: number, reserve: number }>;
 }
 
 const PriceChart = ({ data }: PriceChartProps) => {
+    if (!data) return (
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg font-medium">Price Over Time</CardTitle>
+        </CardHeader>
+      </Card>
+    );
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -39,8 +47,9 @@ const PriceChart = ({ data }: PriceChartProps) => {
                   if (active && payload && payload.length) {
                     return (
                       <div className="bg-white p-2 border rounded shadow-md">
-                        <p className="text-sm">{`Time: ${payload[0].payload.time}`}</p>
-                        <p className="text-sm font-semibold">{`Price: ${payload[0].value} ETH`}</p>
+                        <p className="text-sm">Time: {payload[0].payload.time}</p>
+                        <p className="text-sm font-semibold">Price: {payload[0].value} ETH</p>
+                        <p className="text-sm font-semibold">Reserve: {payload[0].payload.reserve}</p>
                       </div>
                     );
                   }
@@ -56,6 +65,15 @@ const PriceChart = ({ data }: PriceChartProps) => {
                 name="Price (ETH)"
                 dot={false}
               />
+              <Line
+                type="monotone"
+                dataKey="reserve"
+                stroke="#add8e6"
+                strokeWidth={2}
+                name="Reserve price (ETH)"
+                dot={false}
+              />
+              <ReferenceLine x={data[19]?.time} stroke="#ccc" strokeDasharray="3 3" label="Now" />
             </LineChart>
           </ChartContainer>
         </div>

@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input.tsx";
 import { useAccount, useConfig } from "wagmi";
 import { sepolia } from "wagmi/chains";
 import { type BaseError } from "wagmi";
-import { PAYMENT_TOKEN_ADDRESS } from "@/utils/confidentialErc20Abi.ts";
+import { VITE_PAYMENT_TOKEN_CONTRACT_ADDRESS } from "@/config/env";
 import { useEncryptedBalance } from "@/hooks/useEncryptedBalance";
 import { useEncryptedTransfer } from "@/hooks/useEncryptedTransfer";
 import { useSigner } from "@/hooks/useSigner";
@@ -16,7 +16,7 @@ import { useTokenBalance } from "@/hooks/useTokenBalance";
 export const DevnetWagmi = () => {
   const { address } = useAccount();
   const chain = sepolia;
-  const contractAddress = PAYMENT_TOKEN_ADDRESS;
+  const contractAddress = VITE_PAYMENT_TOKEN_CONTRACT_ADDRESS;
   const { signer } = useSigner();
 
   const [transferAmount, setTransferAmount] = useState("");

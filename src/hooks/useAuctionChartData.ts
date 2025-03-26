@@ -1,10 +1,15 @@
 
 import { useState, useEffect } from "react";
 
-interface ChartDataPoint {
+interface PriceDataChartPoint {
   time: string;
-  price?: number;
-  tokens?: number;
+  price: number;
+  reserve: number;
+}
+
+interface TokenDataChartPoint {
+  time: string;
+  tokens: number;
 }
 
 interface UseAuctionChartDataProps {
@@ -12,22 +17,24 @@ interface UseAuctionChartDataProps {
   endPrice: number;
   duration: number;
   initialTokenSupply: number;
+  reservePrice: number;
 }
 
 export const useAuctionChartData = ({
   startPrice,
   endPrice,
   duration,
-  initialTokenSupply
+  initialTokenSupply,
+  reservePrice,
 }: UseAuctionChartDataProps) => {
-  const [priceChartData, setPriceChartData] = useState<Array<ChartDataPoint>>([]);
-  const [tokenChartData, setTokenChartData] = useState<Array<ChartDataPoint>>([]);
+  const [priceChartData, setPriceChartData] = useState<Array<PriceDataChartPoint>>([]);
+  const [tokenChartData, setTokenChartData] = useState<Array<TokenDataChartPoint>>([]);
 
   // Generate initial chart data
   useEffect(() => {
     const generateChartData = () => {
-      const priceData: ChartDataPoint[] = [];
-      const tokenData: ChartDataPoint[] = [];
+      const priceData: PriceDataChartPoint[] = [];
+      const tokenData: TokenDataChartPoint[] = [];
       
       // Generate data points for the entire auction duration
       for (let hour = 0; hour <= duration; hour++) {
@@ -35,7 +42,7 @@ export const useAuctionChartData = ({
         const price = startPrice - (startPrice - endPrice) * elapsedRatio;
         const time = `${hour}h`;
         
-        priceData.push({ time, price: Math.max(endPrice, price) });
+        priceData.push({ time, price: Math.max(endPrice, price), reserve: reservePrice });
         
         // For token chart, we'll just use a linear decrease for now as a placeholder
         // In a real application, this would be based on actual token sales
@@ -50,7 +57,7 @@ export const useAuctionChartData = ({
     };
     
     generateChartData();
-  }, [startPrice, endPrice, duration, initialTokenSupply]);
+  }, [startPrice, endPrice, duration, initialTokenSupply, reservePrice]);
 
   return {
     priceChartData,
