@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useAccount, usePublicClient } from "wagmi";
 import { parseUnits } from "ethers";
 import { toast } from "sonner";
+import { Contract } from "ethers";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,7 +37,7 @@ const formSchema = z.object({
 
 export default function DeployAuction() {
   const { isConnected } = useAccount();
-  const { chainId, ensureSepolia } = useNetwork();
+  const { isSepoliaChain, ensureSepolia } = useNetwork();
   const { signer } = useSigner();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -72,7 +73,7 @@ export default function DeployAuction() {
       setIsSubmitting(true);
       
       // Connect to the factory contract
-      const factoryContract = new ethers.Contract(
+      const factoryContract = new Contract(
         VITE_AUCTION_CONTRACT_ADDRESS,
         factoryAuctionAbi,
         signer

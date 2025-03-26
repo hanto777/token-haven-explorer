@@ -18,6 +18,9 @@ interface NetworkContextType {
   isSwitchingNetwork: boolean;
   switchNetwork: (chainId: number) => Promise<void>;
   supportedNetworks: Chain[];
+  isSepoliaChain: boolean;
+  switchToSepolia: () => Promise<boolean>;
+  ensureSepolia: () => boolean;
 }
 
 const NetworkContext = createContext<NetworkContextType>({
@@ -25,6 +28,9 @@ const NetworkContext = createContext<NetworkContextType>({
   isSwitchingNetwork: false,
   switchNetwork: async () => {},
   supportedNetworks: SUPPORTED_CHAINS,
+  isSepoliaChain: false,
+  switchToSepolia: async () => false,
+  ensureSepolia: () => false
 });
 
 export const NetworkProvider = ({ children }: { children: ReactNode }) => {
@@ -36,6 +42,9 @@ export const NetworkProvider = ({ children }: { children: ReactNode }) => {
   
   // We only want to support Ethereum, Sepolia testnet, and Polygon
   const supportedNetworks = SUPPORTED_CHAINS;
+  
+  // Check if current chain is Sepolia
+  const isSepoliaChain = currentChain?.id === sepolia.id;
   
   useEffect(() => {
     if (isConnected && chainId) {
@@ -69,11 +78,42 @@ export const NetworkProvider = ({ children }: { children: ReactNode }) => {
     }
   };
   
+  // Function to switch to Sepolia
+  const switchToSepolia = async (): Promise<boolean> => {
+    if (isSepoliaChain) return true;
+    
+    try {
+      await switchNetwork(sepolia.id);
+      return true;
+    } catch (error) {
+      console.error("Failed to switch to Sepolia:", error);
+      toast.error("This feature requires the Sepolia testnet");
+      return false;
+    }
+  };
+  
+  // Function to ensure we're on Sepolia
+  const ensureSepolia = (): boolean => {
+    if (isSepoliaChain) return true;
+    
+    toast.error("This feature requires the Sepolia testnet", {
+      action: {
+        label: "Switch Network",
+        onClick: () => switchToSepolia()
+      }
+    });
+    
+    return false;
+  };
+  
   const value = {
     currentChain,
     isSwitchingNetwork: isPending,
     switchNetwork,
     supportedNetworks,
+    isSepoliaChain,
+    switchToSepolia,
+    ensureSepolia
   };
   
   return (

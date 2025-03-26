@@ -19,6 +19,7 @@ import Fhevm from "./pages/Fhevm";
 import Swap from "./pages/Swap";
 import NotFound from "./pages/NotFound";
 import Auction from "./pages/Auction";
+import AuctionMain from "./pages/AuctionMain";
 import DeployAuction from "./pages/DeployAuction";
 
 const queryClient = new QueryClient();
@@ -45,6 +46,7 @@ function App() {
                         <Route path="/swap" element={<Swap />} />
                         <Route path="/fhevm" element={<Fhevm />} />
                         <Route path="/auction" element={<Auction />} />
+                        <Route path="/auctions" element={<AuctionMain />} />
                         <Route path="/deploy-auction" element={<DeployAuction />} />
                         <Route path="*" element={<NotFound />} />
                       </Routes>
