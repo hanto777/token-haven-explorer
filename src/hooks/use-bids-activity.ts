@@ -1,106 +1,72 @@
-import { useEffect, useState } from 'react'
-import { useClient, useWatchContractEvent } from 'wagmi'
-import { useQuery } from '@tanstack/react-query'
-import { auctionAbi } from '@/utils/auctionAbi';
-import { getBlock, getBlockNumber, getLogs } from 'viem/actions'
 
-import { VITE_AUCTION_CONTRACT_ADDRESS } from '@/config/env';
-import { Bid } from '@/types/bidTypes';
+import { useState, useEffect } from "react";
+import { useAccount } from "wagmi";
+import { Bid } from "@/types/bidTypes";
 
-export const useBidsActivity = () => {
-  const publicClient = useClient()
-  const [bids, setBids] = useState<Bid[]>([])
+export function useBidsActivity() {
+  const { isConnected } = useAccount();
+  const [bids, setBids] = useState<Bid[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch logs
-  const { data: logs } = useQuery({
-    queryKey: ['bidsSumbitted', VITE_AUCTION_CONTRACT_ADDRESS],
-    queryFn: async () => {
-      if (!publicClient) throw new Error('Public client is not defined')
-      const blockNumber = await getBlockNumber(publicClient)
-      return getLogs(publicClient, {
-        address: VITE_AUCTION_CONTRACT_ADDRESS,
-        event: {
-          anonymous: false,
-          inputs: [
-            {
-              indexed: true,
-              internalType: 'address',
-              name: 'buyer',
-              type: 'address',
-            },
-            {
-              indexed: false,
-              internalType: 'uint256',
-              name: 'pricePerToken',
-              type: 'uint256',
-            },
-          ],
-          name: 'BidSubmitted',
-          type: 'event',
-        },
-
-        fromBlock: blockNumber - 10000n, // TODO: optim: should be contract block publication number
-        toBlock: blockNumber,
-      })
-    },
-  })
-
+  // In a real implementation, this would fetch data from the auction contract
+  // For now, we're using mock data
   useEffect(() => {
-    if (!publicClient) throw new Error('Public client is not defined')
-      async function updateBids () {
-        for (const log of logs) {
-          const { timestamp } = await getBlock(publicClient, {blockHash: log.blockHash})
-          setBids((prevBids) => {
-            // avoid adding twice the same bid
-            if(prevBids.find((bid) => bid.transactionHash === log.transactionHash)) {
-              return prevBids
-            }
-            return [
-            ...prevBids,
-            {
-              address: log.args.buyer,
-              amount: log.args.pricePerToken.toString(),
-              timestamp: new Date(Number(timestamp) * 1000),
-              tokens: Number(timestamp),
-              transactionHash: log.transactionHash
-            }
-          ]})
+    if (isConnected) {
+      // Mock data
+      const mockBids: Bid[] = [
+        {
+          address: "0x1234...abcd",
+          amount: "500",
+          timestamp: new Date(Date.now() - 300000), // 5 minutes ago
+          tokens: 0.5,
+          transactionHash: "0xabc123..."
+        },
+        {
+          address: "0x5678...efgh",
+          amount: "1000",
+          timestamp: new Date(Date.now() - 600000), // 10 minutes ago
+          tokens: 0.8,
+          transactionHash: "0xdef456..."
+        },
+        {
+          address: "0x9012...ijkl",
+          amount: "1500",
+          timestamp: new Date(Date.now() - 900000), // 15 minutes ago
+          tokens: 1.2,
+          transactionHash: "0xghi789..."
         }
+      ];
+      
+      setBids(mockBids);
+      setIsLoading(false);
     }
+  }, [isConnected]);
 
-    if (logs) {
-      updateBids()
+  const placeBid = async (amount: string): Promise<boolean> => {
+    try {
+      // In a real implementation, this would send a transaction to the auction contract
+      // For now, we're just adding a mock bid to the list
+      
+      const newBid: Bid = {
+        address: "0xYour...Wallet", // This would be the connected wallet address
+        amount,
+        timestamp: new Date(),
+        tokens: parseFloat(amount) / 1000, // Mock token calculation
+        transactionHash: "0x" + Math.random().toString(16).slice(2) + "..."
+      };
+      
+      setBids((prevBids) => [newBid, ...prevBids]);
+      
+      return true;
+    } catch (error) {
+      console.error("Error placing bid:", error);
+      return false;
     }
-  }, [logs, publicClient])
+  };
 
-  // live bids
-  useWatchContractEvent({
-    address: VITE_AUCTION_CONTRACT_ADDRESS,
-    abi: auctionAbi,
-    eventName: 'BidSubmitted',
-    onLogs(nlogs) {
-      console.log('New logs!', nlogs.length)
-
-      nlogs.forEach((log) => {
-        setBids((prevBids) => {
-            // avoid adding twice the same bid
-            if(prevBids.find((bid) => bid.transactionHash === log.transactionHash)) {
-            return prevBids
-          }
-          return [
-          ...prevBids,
-          {
-            address: log.address,
-            amount: log.data.length.toString(),
-            timestamp: new Date(),
-            tokens: 1,
-            transactionHash: log.transactionHash
-          },
-        ]})
-      })
-    },
-  })
   return {
     bids,
-  }
+    isLoading,
+    placeBid
+  };
 }

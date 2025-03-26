@@ -1,3 +1,4 @@
+
 export interface Token {
   id: string;
   symbol: string;
@@ -19,6 +20,6 @@ export interface Token {
 export interface TokenContextType {
   tokens: Token[];
   isLoading: boolean;
-  decryptToken: (id: string) => void;
+  decryptToken: (id: string, decryptedBalance?: string) => void;
   sendToken: (id: string, to: string, amount: string) => Promise<boolean>;
 }

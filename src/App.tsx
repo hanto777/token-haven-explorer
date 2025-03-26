@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,6 +19,7 @@ import Fhevm from "./pages/Fhevm";
 import Swap from "./pages/Swap";
 import NotFound from "./pages/NotFound";
 import Auction from "./pages/Auction";
+import DeployAuction from "./pages/DeployAuction";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +45,7 @@ function App() {
                         <Route path="/swap" element={<Swap />} />
                         <Route path="/fhevm" element={<Fhevm />} />
                         <Route path="/auction" element={<Auction />} />
+                        <Route path="/deploy-auction" element={<DeployAuction />} />
                         <Route path="*" element={<NotFound />} />
                       </Routes>
                     </AnimatePresence>
