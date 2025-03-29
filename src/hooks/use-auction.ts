@@ -41,6 +41,12 @@ export const useAuctionDetails = (address: string) => {
     functionName: "startAt",
   });
 
+  const { data: seller } = useReadContract({
+    abi: auctionAbi,
+    address:  address as `0x${string}`,
+    functionName: 'seller',
+  })
+
   const { data: expiresAt } = useReadContract({
     abi: auctionAbi,
     address: address as `0x${string}`,
@@ -70,6 +76,7 @@ export const useAuctionDetails = (address: string) => {
     discountRate: Number(discountRate),
     startAt: Number(startAt),
     expiresAt: Number(expiresAt),
+    seller: String(seller),
     reservePrice: Number(reservePrice),
     initialTokenSupply: Number(initialTokenSupply),
     hasAuctionStarted: Boolean(hasAuctionStarted),

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { readContract } from "wagmi/actions";
 import { parseAbiItem } from "viem";
@@ -10,7 +9,6 @@ import { wagmiConfig } from "@/providers/wagmiConfig";
 
 export interface AuctionSummary {
   address: `0x${string}`;
-  isUserAuction: boolean;
 }
 
 export function useAllAuctions() {
@@ -46,9 +44,6 @@ export function useAllAuctions() {
           const auctionSummaries: AuctionSummary[] = auctionAddresses.map(
             (auctionAddress) => ({
               address: auctionAddress,
-              isUserAuction: address
-                ? address.toLowerCase() === auctionAddress.toLowerCase()
-                : false,
             })
           );
 

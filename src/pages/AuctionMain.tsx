@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -33,7 +32,7 @@ export default function AuctionMain() {
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 pt-24 pb-16">
       <div className="container mx-auto px-4">
         {/* Hero Section */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -46,25 +45,27 @@ export default function AuctionMain() {
             Discover and Participate in Auctions
           </h1>
           <p className="text-muted-foreground text-lg mb-8 mx-auto max-w-2xl">
-            Explore ongoing Dutch auctions with decreasing prices over time. 
-            Buy tokens at your desired price or create your own auction.
+            Explore ongoing Dutch auctions with decreasing prices over time. Buy
+            tokens at your desired price or create your own auction.
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
-            <Button 
-              size="lg" 
+            <Button
+              size="lg"
               onClick={() => navigate("/deploy-auction")}
               className="gap-2"
             >
               <Plus className="h-4 w-4" /> Create Auction
             </Button>
-            <Button 
-              size="lg" 
-              variant="outline" 
+            <Button
+              size="lg"
+              variant="outline"
               onClick={handleRefresh}
               disabled={isRefreshing}
               className="gap-2"
             >
-              <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} /> 
+              <RefreshCw
+                className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+              />
               Refresh
             </Button>
           </div>
@@ -73,9 +74,7 @@ export default function AuctionMain() {
         {/* Network Check */}
         {currentChain?.id !== chain.id && (
           <div className="mb-12">
-            <WrongNetworkMessage 
-              onSwitchNetwork={switchToSepolia} 
-            />
+            <WrongNetworkMessage onSwitchNetwork={switchToSepolia} />
           </div>
         )}
 
@@ -88,9 +87,9 @@ export default function AuctionMain() {
                 Browse all currently active auctions
               </p>
             </div>
-            <Button 
-              variant="ghost" 
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            <Button
+              variant="ghost"
+              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
               className="hidden md:flex items-center gap-2"
             >
               Back to top <ArrowRight className="h-4 w-4" />
@@ -129,8 +128,12 @@ export default function AuctionMain() {
                   <div className="inline-flex items-center justify-center p-4 bg-background rounded-full mb-4">
                     <Tag className="h-6 w-6 text-primary" />
                   </div>
-                  <h3 className="text-xl font-medium mb-2">No active auctions found</h3>
-                  <p className="text-muted-foreground mb-6">Be the first to create an auction on the platform</p>
+                  <h3 className="text-xl font-medium mb-2">
+                    No active auctions found
+                  </h3>
+                  <p className="text-muted-foreground mb-6">
+                    Be the first to create an auction on the platform
+                  </p>
                   <Button onClick={() => navigate("/deploy-auction")}>
                     Create Your First Auction
                   </Button>
@@ -154,8 +157,8 @@ export default function AuctionMain() {
                       <p className="text-sm text-muted-foreground mb-4">
                         Don't see what you're looking for?
                       </p>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         onClick={() => navigate("/deploy-auction")}
                         className="gap-2"
                       >
@@ -177,81 +180,15 @@ export default function AuctionMain() {
               <div className="inline-flex items-center justify-center p-4 bg-background rounded-full mb-4">
                 <Clock className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="text-xl font-medium mb-2">Connect Wallet to View Auctions</h3>
-              <p className="text-muted-foreground mb-6">Connect your wallet to browse and participate in auctions</p>
+              <h3 className="text-xl font-medium mb-2">
+                Connect Wallet to View Auctions
+              </h3>
+              <p className="text-muted-foreground mb-6">
+                Connect your wallet to browse and participate in auctions
+              </p>
             </motion.div>
           )}
         </div>
-
-        {/* How It Works Section */}
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3, duration: 0.5 }}
-          className="my-20"
-        >
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">How Dutch Auctions Work</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Dutch auctions start at a high price that decreases over time until someone makes a purchase
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="bg-card/50 border">
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <div className="bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span className="font-bold text-primary">1</span>
-                  </div>
-                  <h3 className="text-xl font-medium mb-2">Starting Price</h3>
-                  <p className="text-muted-foreground">
-                    Auctions begin at a high price set by the creator
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-card/50 border">
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <div className="bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span className="font-bold text-primary">2</span>
-                  </div>
-                  <h3 className="text-xl font-medium mb-2">Price Decline</h3>
-                  <p className="text-muted-foreground">
-                    The price decreases gradually over the auction's duration
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-card/50 border">
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <div className="bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span className="font-bold text-primary">3</span>
-                  </div>
-                  <h3 className="text-xl font-medium mb-2">Make a Purchase</h3>
-                  <p className="text-muted-foreground">
-                    Buy at any time when the price meets your desired value
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="text-center mt-10">
-            <Button 
-              onClick={() => navigate("/deploy-auction")} 
-              size="lg"
-              variant="default"
-              className="gap-2"
-            >
-              <Plus className="h-4 w-4" /> Start Your Auction
-            </Button>
-          </div>
-        </motion.div>
       </div>
     </div>
   );
