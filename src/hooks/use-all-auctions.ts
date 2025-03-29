@@ -1,14 +1,18 @@
-import { useState, useEffect } from "react";
+
+import { useState, useEffect, useMemo } from "react";
 import { readContract } from "wagmi/actions";
-import { parseAbiItem } from "viem";
 import { useAccount } from "wagmi";
 import { useNetwork } from "@/hooks/useNetwork";
 import { factoryAuctionAbi } from "@/utils/factoryAuctionAbi";
 import { VITE_AUCTION_FACTORY_CONTRACT_ADDRESS } from "@/config/env";
 import { wagmiConfig } from "@/providers/wagmiConfig";
+import { useAuctionDetails } from "./use-auction";
 
 export interface AuctionSummary {
   address: `0x${string}`;
+  hasAuctionStarted?: boolean;
+  expiresAt?: number;
+  seller?: string;
 }
 
 export function useAllAuctions() {
@@ -47,7 +51,70 @@ export function useAllAuctions() {
             })
           );
 
-          setAuctions(auctionSummaries);
+          // Get additional details for each auction
+          const auctionDetailsPromises = auctionAddresses.map(async (auctionAddress) => {
+            try {
+              const hasStarted = await readContract(wagmiConfig, {
+                address: auctionAddress,
+                abi: [
+                  {
+                    inputs: [],
+                    name: "auctionStart",
+                    outputs: [{ internalType: "bool", name: "", type: "bool" }],
+                    stateMutability: "view",
+                    type: "function",
+                  },
+                ],
+                functionName: "auctionStart",
+              });
+
+              const expiresAtResult = await readContract(wagmiConfig, {
+                address: auctionAddress,
+                abi: [
+                  {
+                    inputs: [],
+                    name: "expiresAt",
+                    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+                    stateMutability: "view",
+                    type: "function",
+                  },
+                ],
+                functionName: "expiresAt",
+              });
+
+              const sellerResult = await readContract(wagmiConfig, {
+                address: auctionAddress,
+                abi: [
+                  {
+                    inputs: [],
+                    name: "seller",
+                    outputs: [{ internalType: "address payable", name: "", type: "address" }],
+                    stateMutability: "view",
+                    type: "function",
+                  },
+                ],
+                functionName: "seller",
+              });
+
+              return {
+                address: auctionAddress,
+                hasAuctionStarted: Boolean(hasStarted),
+                expiresAt: Number(expiresAtResult),
+                seller: sellerResult as string,
+              };
+            } catch (err) {
+              console.error(`Error fetching details for auction ${auctionAddress}:`, err);
+              return {
+                address: auctionAddress,
+                hasAuctionStarted: false,
+                expiresAt: 0,
+                seller: "",
+              };
+            }
+          });
+
+          const auctionsWithDetails = await Promise.all(auctionDetailsPromises);
+          setAuctions(auctionsWithDetails);
         } else {
           setAuctions([]);
         }
@@ -64,8 +131,37 @@ export function useAllAuctions() {
     fetchAuctions();
   }, [isConnected, currentChain, address]);
 
+  // Filter for active auctions
+  const activeAuctions = useMemo(() => {
+    if (!auctions.length) return [];
+    const now = Math.floor(Date.now() / 1000);
+    return auctions.filter(
+      (auction) => auction.hasAuctionStarted && auction.expiresAt && auction.expiresAt > now
+    );
+  }, [auctions]);
+
+  // Filter for ended auctions
+  const endedAuctions = useMemo(() => {
+    if (!auctions.length) return [];
+    const now = Math.floor(Date.now() / 1000);
+    return auctions.filter(
+      (auction) => auction.hasAuctionStarted && auction.expiresAt && auction.expiresAt <= now
+    );
+  }, [auctions]);
+
+  // Filter for user's auctions
+  const myAuctions = useMemo(() => {
+    if (!auctions.length || !address) return [];
+    return auctions.filter(
+      (auction) => auction.seller?.toLowerCase() === address.toLowerCase()
+    );
+  }, [auctions, address]);
+
   return {
     auctions,
+    activeAuctions,
+    endedAuctions,
+    myAuctions,
     isLoading,
     error,
   };
