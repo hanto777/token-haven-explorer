@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from "react";
 import { readContract } from "wagmi/actions";
 import { useAccount } from "wagmi";
@@ -54,7 +53,7 @@ export function useAllAuctions() {
               seller: "",
             })
           );
-          
+
           // Set the initial data first to prevent the map error
           setAuctions(auctionSummaries);
 
@@ -102,7 +101,10 @@ export function useAllAuctions() {
           );
 
           try {
-            const auctionsWithDetails = await Promise.all(auctionDetailsPromises);
+            const auctionsWithDetails = await Promise.all(
+              auctionDetailsPromises
+            );
+            console.log(auctionsWithDetails);
             setAuctions(auctionsWithDetails);
           } catch (err) {
             console.error("Error fetching auction details:", err);

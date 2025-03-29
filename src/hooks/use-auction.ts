@@ -1,4 +1,3 @@
-import { VITE_AUCTION_CONTRACT_ADDRESS } from "@/config/env";
 import { auctionAbi } from "@/utils/auctionAbi";
 import { useReadContract } from "wagmi";
 
@@ -43,9 +42,9 @@ export const useAuctionDetails = (address: string) => {
 
   const { data: seller } = useReadContract({
     abi: auctionAbi,
-    address:  address as `0x${string}`,
-    functionName: 'seller',
-  })
+    address: address as `0x${string}`,
+    functionName: "seller",
+  });
 
   const { data: expiresAt } = useReadContract({
     abi: auctionAbi,
