@@ -59,7 +59,7 @@ export const useAuctionDetails = (address: string) => {
     functionName: "amount",
   });
 
-  const { data: isAuctionActive } = useReadContract({
+  const { data: hasAuctionStarted } = useReadContract({
     abi: auctionAbi,
     address: address as `0x${string}`,
     functionName: "auctionStart",
@@ -72,6 +72,6 @@ export const useAuctionDetails = (address: string) => {
     expiresAt: Number(expiresAt),
     reservePrice: Number(reservePrice),
     initialTokenSupply: Number(initialTokenSupply),
-    isAuctionActive: Boolean(isAuctionActive),
+    hasAuctionStarted: Boolean(hasAuctionStarted),
   };
 };

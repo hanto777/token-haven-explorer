@@ -51,7 +51,7 @@ const Auction = () => {
     useAuctionCurrentPrice(auctionAddress);
   const {
     startPrice,
-    isAuctionActive,
+    hasAuctionStarted,
     initialTokenSupply,
     startAt,
     expiresAt,
@@ -75,7 +75,7 @@ const Auction = () => {
     startAt,
     expiresAt,
     discountRate,
-    isAuctionActive,
+    hasAuctionStarted,
     refreshCurrentPrice,
     refreshTokensLeft,
   });
@@ -170,7 +170,7 @@ const Auction = () => {
               currentPrice={currentPrice}
               paymentTokenSymbol={paymentTokenSymbol}
               timeRemaining={timeRemaining}
-              isAuctionActive={isAuctionActive}
+              hasAuctionStarted={hasAuctionStarted}
               formatTimeRemaining={formatTimeRemaining}
             />
 
@@ -186,7 +186,7 @@ const Auction = () => {
 
             {/* Bid Section */}
             <BidForm
-              isAuctionActive={isAuctionActive}
+              hasAuctionStarted={hasAuctionStarted}
               currentTokenSupply={currentTokenSupply}
               bidAmount={bidAmount}
               setBidAmount={setBidAmount}

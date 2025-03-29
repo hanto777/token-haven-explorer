@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface BidFormProps {
-  isAuctionActive: boolean;
+  hasAuctionStarted: boolean;
   currentTokenSupply: number;
   bidAmount: string;
   setBidAmount: (value: string) => void;
@@ -17,7 +17,7 @@ interface BidFormProps {
 }
 
 const BidForm = ({
-  isAuctionActive,
+  hasAuctionStarted,
   currentTokenSupply,
   bidAmount,
   setBidAmount,
@@ -34,7 +34,7 @@ const BidForm = ({
         Math.floor(parseFloat(bidAmount) / currentPrice),
         currentTokenSupply
       );
-  const canBid = isAuctionActive && currentTokenSupply > 0 && !isBidding;
+  const canBid = hasAuctionStarted && currentTokenSupply > 0 && !isBidding;
   return (
     <Card>
       <CardHeader>
@@ -65,7 +65,7 @@ const BidForm = ({
                 Place Bid
               </Button>
             </div>
-            {isAuctionActive && (
+            {hasAuctionStarted && (
               <div>
                 <div className="mt-2 space-y-1">
                   <p>
