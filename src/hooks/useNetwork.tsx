@@ -3,28 +3,31 @@ import { useState, useEffect, createContext, useContext, ReactNode } from 'react
 import { useChains, useConfig, useSwitchChain } from 'wagmi';
 import { sepolia } from 'wagmi/chains';
 import { toast } from 'sonner';
+import { Chain } from 'wagmi/chains';
 
 interface NetworkContextType {
-  currentChain: ReturnType<typeof useChains>[0] | undefined;
-  supportedChains: ReturnType<typeof useChains>;
+  currentChain: Chain | undefined;
+  supportedChains: Chain[];
   switchToSepolia: () => Promise<boolean>;
+  isSepoliaChain: boolean;
 }
 
 const NetworkContext = createContext<NetworkContextType>({
   currentChain: undefined,
   supportedChains: [],
   switchToSepolia: async () => false,
+  isSepoliaChain: false,
 });
 
 export const NetworkProvider = ({ children }: { children: ReactNode }) => {
   const chains = useChains();
   const config = useConfig();
-  const [currentChain, setCurrentChain] = useState<ReturnType<typeof useChains>[0] | undefined>();
+  const [currentChain, setCurrentChain] = useState<Chain | undefined>();
   const { switchChain } = useSwitchChain();
   
   // Get current chain
   useEffect(() => {
-    if (chains.length > 0) {
+    if (chains && chains.length > 0) {
       setCurrentChain(chains[0]);
     }
   }, [chains]);
@@ -46,10 +49,13 @@ export const NetworkProvider = ({ children }: { children: ReactNode }) => {
     }
   };
   
+  const isSepoliaChain = currentChain?.id === sepolia.id;
+  
   const value = {
     currentChain,
-    supportedChains: chains,
+    supportedChains: chains || [],
     switchToSepolia,
+    isSepoliaChain,
   };
   
   return (

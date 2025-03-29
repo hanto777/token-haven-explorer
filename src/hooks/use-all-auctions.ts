@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useMemo } from "react";
 import { readContract } from "wagmi/actions";
 import { useAccount } from "wagmi";
@@ -5,7 +6,6 @@ import { useNetwork } from "@/hooks/useNetwork";
 import { factoryAuctionAbi } from "@/utils/factoryAuctionAbi";
 import { VITE_AUCTION_FACTORY_CONTRACT_ADDRESS } from "@/config/env";
 import { wagmiConfig } from "@/providers/wagmiConfig";
-import { useAuctionDetails } from "./use-auction";
 import { auctionAbi } from "@/utils/auctionAbi";
 
 export interface AuctionSummary {
@@ -44,12 +44,19 @@ export function useAllAuctions() {
         if (result && Array.isArray(result)) {
           const auctionAddresses = result as `0x${string}`[];
 
-          // Map auction addresses to AuctionSummary objects
+          // Initialize auctionSummaries with addresses first
+          // This prevents the "map of undefined" error if promise.all fails
           const auctionSummaries: AuctionSummary[] = auctionAddresses.map(
             (auctionAddress) => ({
               address: auctionAddress,
+              hasAuctionStarted: false,
+              expiresAt: 0,
+              seller: "",
             })
           );
+          
+          // Set the initial data first to prevent the map error
+          setAuctions(auctionSummaries);
 
           // Get additional details for each auction
           const auctionDetailsPromises = auctionAddresses.map(
@@ -94,8 +101,13 @@ export function useAllAuctions() {
             }
           );
 
-          const auctionsWithDetails = await Promise.all(auctionDetailsPromises);
-          setAuctions(auctionsWithDetails);
+          try {
+            const auctionsWithDetails = await Promise.all(auctionDetailsPromises);
+            setAuctions(auctionsWithDetails);
+          } catch (err) {
+            console.error("Error fetching auction details:", err);
+            // We already set initial auction data above, so we don't need to set again
+          }
         } else {
           setAuctions([]);
         }
@@ -104,6 +116,8 @@ export function useAllAuctions() {
         setError(
           err instanceof Error ? err : new Error("Failed to fetch auctions")
         );
+        // Make sure auctions is at least an empty array to prevent map errors
+        setAuctions([]);
       } finally {
         setIsLoading(false);
       }
@@ -114,7 +128,7 @@ export function useAllAuctions() {
 
   // Filter for active auctions
   const activeAuctions = useMemo(() => {
-    if (!auctions.length) return [];
+    if (!auctions || !auctions.length) return [];
     const now = Math.floor(Date.now() / 1000);
     return auctions.filter(
       (auction) =>
@@ -126,7 +140,7 @@ export function useAllAuctions() {
 
   // Filter for ended auctions
   const endedAuctions = useMemo(() => {
-    if (!auctions.length) return [];
+    if (!auctions || !auctions.length) return [];
     const now = Math.floor(Date.now() / 1000);
     return auctions.filter(
       (auction) =>
@@ -138,7 +152,7 @@ export function useAllAuctions() {
 
   // Filter for user's auctions
   const myAuctions = useMemo(() => {
-    if (!auctions.length || !address) return [];
+    if (!auctions || !auctions.length || !address) return [];
     return auctions.filter(
       (auction) => auction.seller?.toLowerCase() === address.toLowerCase()
     );

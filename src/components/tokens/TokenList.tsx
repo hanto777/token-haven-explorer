@@ -1,14 +1,19 @@
+
 import { useState, useEffect } from "react";
 import { useTokens, Token } from "@/hooks/useTokens";
 import TokenCard from "./TokenCard";
 import { motion, AnimatePresence } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Coins } from "lucide-react";
+import { useSigner } from "@/hooks/useSigner";
+import { useNetwork } from "@/hooks/useNetwork";
 
 const TokenList = () => {
   const { tokens, isLoading, decryptToken } = useTokens();
   const [nativeToken, setNativeToken] = useState<Token | null>(null);
   const [otherTokens, setOtherTokens] = useState<Token[]>([]);
+  const { signer, loadingFhevm } = useSigner();
+  const { isSepoliaChain } = useNetwork();
 
   // Separate native token from other tokens
   useEffect(() => {
@@ -96,7 +101,13 @@ const TokenList = () => {
             Native Token
           </h2>
           <div className="max-w-md">
-            <TokenCard token={nativeToken} decryptToken={decryptToken} />
+            <TokenCard 
+              token={nativeToken} 
+              decryptToken={decryptToken} 
+              signer={signer} 
+              loadingFhevm={loadingFhevm}
+              isSepoliaChain={isSepoliaChain}
+            />
           </div>
         </motion.div>
       )}
@@ -126,6 +137,9 @@ const TokenList = () => {
                   <TokenCard
                     token={token}
                     decryptToken={decryptToken}
+                    signer={signer}
+                    loadingFhevm={loadingFhevm}
+                    isSepoliaChain={isSepoliaChain}
                   />
                 </motion.div>
               ))}
