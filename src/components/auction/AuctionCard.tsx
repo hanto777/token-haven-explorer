@@ -17,13 +17,9 @@ const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
     6
   )}...${auction.address.slice(-4)}`;
   const {
-    startPrice,
     hasAuctionStarted,
-    initialTokenSupply,
     startAt,
     expiresAt,
-    reservePrice,
-    discountRate,
   } = useAuctionDetails(auction.address);
 
   return (

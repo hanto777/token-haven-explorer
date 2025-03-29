@@ -4,7 +4,7 @@ interface UseAuctionTimerProps {
   expiresAt: number;
   startAt: number;
   discountRate: number;
-  isAuctionActive: boolean;
+  hasAuctionStarted: boolean;
   refreshCurrentPrice: () => void;
   refreshTokensLeft: () => void;
 }
@@ -19,7 +19,7 @@ export const useAuctionTimer = ({
   expiresAt,
   startAt,
   discountRate,
-  isAuctionActive,
+  hasAuctionStarted,
   refreshCurrentPrice,
   refreshTokensLeft,
 }: UseAuctionTimerProps): UseAuctionTimerReturn => {
@@ -49,7 +49,7 @@ export const useAuctionTimer = ({
 
   // Update timer and price
   useEffect(() => {
-    if (!isAuctionActive) return;
+    if (!hasAuctionStarted) return;
 
     const timer = setInterval(() => {
       setAuctionTimeRemaining((prev) => {
@@ -67,7 +67,7 @@ export const useAuctionTimer = ({
     return () => clearInterval(timer);
   }, [
     auctionTimeRemaining,
-    isAuctionActive,
+    hasAuctionStarted,
     refreshCurrentPrice,
     refreshTokensLeft,
   ]);
