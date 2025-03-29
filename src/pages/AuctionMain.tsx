@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -19,7 +18,8 @@ export default function AuctionMain() {
   const navigate = useNavigate();
   const { currentChain, switchToSepolia } = useNetwork();
   const chain = sepolia;
-  const { activeAuctions, endedAuctions, myAuctions, isLoading, error } = useAllAuctions();
+  const { activeAuctions, endedAuctions, myAuctions, isLoading, error } =
+    useAllAuctions();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState("active");
 
@@ -84,7 +84,11 @@ export default function AuctionMain() {
 
         {isConnected ? (
           <>
-            <Tabs defaultValue="active" className="mt-8 mb-16" onValueChange={setActiveTab}>
+            <Tabs
+              defaultValue="active"
+              className="mt-8 mb-16"
+              onValueChange={setActiveTab}
+            >
               <div className="flex justify-between items-center mb-6">
                 <TabsList className="grid grid-cols-3 w-full md:w-[400px]">
                   <TabsTrigger value="active">Active Auctions</TabsTrigger>
@@ -93,17 +97,19 @@ export default function AuctionMain() {
                 </TabsList>
                 <Button
                   variant="ghost"
-                  onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                  onClick={() =>
+                    window.scrollTo({ top: 0, behavior: "smooth" })
+                  }
                   className="hidden md:flex items-center gap-2"
                 >
                   Back to top <ArrowRight className="h-4 w-4" />
                 </Button>
               </div>
-              
+
               <TabsContent value="active" className="mt-6">
                 <h2 className="text-2xl font-bold mb-6">Active Auctions</h2>
                 <Separator className="mb-8" />
-                
+
                 {isLoading ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {[1, 2, 3].map((i) => (
@@ -146,7 +152,7 @@ export default function AuctionMain() {
                   </motion.div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {activeAuctions.map((auction) => (
+                    {activeAuctions?.map((auction) => (
                       <motion.div
                         key={auction.address}
                         initial={{ opacity: 0, y: 20 }}
@@ -159,11 +165,11 @@ export default function AuctionMain() {
                   </div>
                 )}
               </TabsContent>
-              
+
               <TabsContent value="ended" className="mt-6">
                 <h2 className="text-2xl font-bold mb-6">Ended Auctions</h2>
                 <Separator className="mb-8" />
-                
+
                 {isLoading ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {[1, 2].map((i) => (
@@ -200,13 +206,16 @@ export default function AuctionMain() {
                     <p className="text-muted-foreground mb-6">
                       All current auctions are still active
                     </p>
-                    <Button variant="outline" onClick={() => setActiveTab("active")}>
+                    <Button
+                      variant="outline"
+                      onClick={() => setActiveTab("active")}
+                    >
                       View Active Auctions
                     </Button>
                   </motion.div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {endedAuctions.map((auction) => (
+                    {endedAuctions?.map((auction) => (
                       <motion.div
                         key={auction.address}
                         initial={{ opacity: 0, y: 20 }}
@@ -219,11 +228,11 @@ export default function AuctionMain() {
                   </div>
                 )}
               </TabsContent>
-              
+
               <TabsContent value="my" className="mt-6">
                 <h2 className="text-2xl font-bold mb-6">My Auctions</h2>
                 <Separator className="mb-8" />
-                
+
                 {isLoading ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {[1, 2].map((i) => (
@@ -267,7 +276,7 @@ export default function AuctionMain() {
                 ) : (
                   <>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {myAuctions.map((auction) => (
+                      {myAuctions?.map((auction) => (
                         <motion.div
                           key={auction.address}
                           initial={{ opacity: 0, y: 20 }}

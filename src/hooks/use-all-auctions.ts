@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from "react";
 import { readContract } from "wagmi/actions";
 import { useAccount } from "wagmi";
@@ -7,6 +6,7 @@ import { factoryAuctionAbi } from "@/utils/factoryAuctionAbi";
 import { VITE_AUCTION_FACTORY_CONTRACT_ADDRESS } from "@/config/env";
 import { wagmiConfig } from "@/providers/wagmiConfig";
 import { useAuctionDetails } from "./use-auction";
+import { auctionAbi } from "@/utils/auctionAbi";
 
 export interface AuctionSummary {
   address: `0x${string}`;
@@ -52,66 +52,47 @@ export function useAllAuctions() {
           );
 
           // Get additional details for each auction
-          const auctionDetailsPromises = auctionAddresses.map(async (auctionAddress) => {
-            try {
-              const hasStarted = await readContract(wagmiConfig, {
-                address: auctionAddress,
-                abi: [
-                  {
-                    inputs: [],
-                    name: "auctionStart",
-                    outputs: [{ internalType: "bool", name: "", type: "bool" }],
-                    stateMutability: "view",
-                    type: "function",
-                  },
-                ],
-                functionName: "auctionStart",
-              });
+          const auctionDetailsPromises = auctionAddresses.map(
+            async (auctionAddress) => {
+              try {
+                const hasStarted = await readContract(wagmiConfig, {
+                  address: auctionAddress,
+                  abi: auctionAbi,
+                  functionName: "auctionStart",
+                });
 
-              const expiresAtResult = await readContract(wagmiConfig, {
-                address: auctionAddress,
-                abi: [
-                  {
-                    inputs: [],
-                    name: "expiresAt",
-                    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-                    stateMutability: "view",
-                    type: "function",
-                  },
-                ],
-                functionName: "expiresAt",
-              });
+                const expiresAtResult = await readContract(wagmiConfig, {
+                  address: auctionAddress,
+                  abi: auctionAbi,
+                  functionName: "expiresAt",
+                });
 
-              const sellerResult = await readContract(wagmiConfig, {
-                address: auctionAddress,
-                abi: [
-                  {
-                    inputs: [],
-                    name: "seller",
-                    outputs: [{ internalType: "address payable", name: "", type: "address" }],
-                    stateMutability: "view",
-                    type: "function",
-                  },
-                ],
-                functionName: "seller",
-              });
+                const sellerResult = await readContract(wagmiConfig, {
+                  address: auctionAddress,
+                  abi: auctionAbi,
+                  functionName: "seller",
+                });
 
-              return {
-                address: auctionAddress,
-                hasAuctionStarted: Boolean(hasStarted),
-                expiresAt: Number(expiresAtResult),
-                seller: sellerResult as string,
-              };
-            } catch (err) {
-              console.error(`Error fetching details for auction ${auctionAddress}:`, err);
-              return {
-                address: auctionAddress,
-                hasAuctionStarted: false,
-                expiresAt: 0,
-                seller: "",
-              };
+                return {
+                  address: auctionAddress,
+                  hasAuctionStarted: Boolean(hasStarted),
+                  expiresAt: Number(expiresAtResult),
+                  seller: sellerResult as string,
+                };
+              } catch (err) {
+                console.error(
+                  `Error fetching details for auction ${auctionAddress}:`,
+                  err
+                );
+                return {
+                  address: auctionAddress,
+                  hasAuctionStarted: false,
+                  expiresAt: 0,
+                  seller: "",
+                };
+              }
             }
-          });
+          );
 
           const auctionsWithDetails = await Promise.all(auctionDetailsPromises);
           setAuctions(auctionsWithDetails);
@@ -136,7 +117,10 @@ export function useAllAuctions() {
     if (!auctions.length) return [];
     const now = Math.floor(Date.now() / 1000);
     return auctions.filter(
-      (auction) => auction.hasAuctionStarted && auction.expiresAt && auction.expiresAt > now
+      (auction) =>
+        auction.hasAuctionStarted &&
+        auction.expiresAt &&
+        auction.expiresAt > now
     );
   }, [auctions]);
 
@@ -145,7 +129,10 @@ export function useAllAuctions() {
     if (!auctions.length) return [];
     const now = Math.floor(Date.now() / 1000);
     return auctions.filter(
-      (auction) => auction.hasAuctionStarted && auction.expiresAt && auction.expiresAt <= now
+      (auction) =>
+        auction.hasAuctionStarted &&
+        auction.expiresAt &&
+        auction.expiresAt <= now
     );
   }, [auctions]);
 
