@@ -1,125 +1,214 @@
+import { useEffect, useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { useAccount, useChainId } from "wagmi";
+import { sepolia } from "wagmi/chains";
+import { Gavel } from "lucide-react";
 
-import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { ArrowUpRight, Plus, ArrowLeft } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
-import { Card, CardContent } from "@/components/ui/card";
-import { useNetwork } from "@/hooks/useNetwork";
-import { useAccount } from "wagmi";
-
+// Import components
+import { useToast } from "@/components/ui/use-toast";
 import TokenInfo from "@/components/auction/TokenInfo";
 import AuctionStatus from "@/components/auction/AuctionStatus";
 import PriceChart from "@/components/auction/PriceChart";
 import TokenSupplyChart from "@/components/auction/TokenSupplyChart";
 import BidForm from "@/components/auction/BidForm";
 import BidHistory from "@/components/auction/BidHistory";
-import AuctionControls from "@/components/auction/AuctionControls";
 import WrongNetworkMessage from "@/components/auction/WrongNetworkMessage";
 
-import { useAuctionChartData } from "@/hooks/useAuctionChartData";
+// Import hooks
 import { useAuctionTimer } from "@/hooks/useAuctionTimer";
+import { useAuctionChartData } from "@/hooks/useAuctionChartData";
+import { useAuctionToken } from "@/hooks/use-auction-token";
+import { useAuctionPaymentToken } from "@/hooks/use-auction-payment-token";
+import {
+  useAuctionCurrentPrice,
+  useAuctionDetails,
+  useAuctionTokensLeft,
+} from "@/hooks/use-auction";
+import { useEncryptedBid } from "@/hooks/useEncryptedBid";
 import { useBidsActivity } from "@/hooks/use-bids-activity";
-import { useAuction } from "@/hooks/use-auction";
+import { useLocation, useNavigate } from "react-router-dom";
 
-export default function Auction() {
-  const { isConnected } = useAccount();
-  const { isSepoliaChain, switchToSepolia } = useNetwork();
-  const navigate = useNavigate();
+const Auction = () => {
+  const { address } = useAccount();
+  const chainId = useChainId();
+  const isOnSepolia = chainId === sepolia.id;
+  const { toast } = useToast();
   const location = useLocation();
+
   const queryParams = new URLSearchParams(location.search);
+
   const auctionAddress = queryParams.get("address");
-  
-  const { 
-    currentPrice, 
-    startingPrice, 
-    reservePrice, 
-    initialTokens, 
-    remainingTokens,
-    endTime,
-    isActive,
-    isLoading
-  } = useAuction();
-  
-  const { timeRemaining, formattedTimeRemaining } = useAuctionTimer(endTime, isActive);
-  const chartData = useAuctionChartData();
+
+  const { tokenName, totalTokenSupply } = useAuctionToken();
+  const { paymentTokenSymbol } = useAuctionPaymentToken();
+  const { refreshCurrentPrice, currentPrice } =
+    useAuctionCurrentPrice(auctionAddress);
+  const {
+    startPrice,
+    isAuctionActive,
+    initialTokenSupply,
+    startAt,
+    expiresAt,
+    reservePrice,
+    discountRate,
+  } = useAuctionDetails(auctionAddress);
+
+  // Dutch auction state
+  const [endPrice, setEndPrice] = useState<number>(10);
+
+  const [bidAmount, setBidAmount] = useState<string>("0");
   const { bids } = useBidsActivity();
 
+  // Token data
+  const { tokensLeft: currentTokenSupply, refreshTokensLeft } =
+    useAuctionTokensLeft(auctionAddress);
+
+  // Use custom hooks
+  // TODO: use discountRate to calculate steps
+  const { timeRemaining, formatTimeRemaining } = useAuctionTimer({
+    startAt,
+    expiresAt,
+    discountRate,
+    isAuctionActive,
+    refreshCurrentPrice,
+    refreshTokensLeft,
+  });
+
+  const { priceChartData, tokenChartData, setTokenChartData } =
+    useAuctionChartData({
+      startPrice,
+      endPrice,
+      duration: (expiresAt - startAt) / 3600, // TODO fix
+      initialTokenSupply,
+      reservePrice,
+    });
+
+  const {
+    bid,
+    isEncrypting,
+    isPending,
+    isConfirming,
+    isConfirmed,
+    transferHash,
+    transferError,
+  } = useEncryptedBid({
+    contractAddress: auctionAddress as `0x${string}`,
+    userAddress: address,
+    chain: sepolia,
+  });
+  // Place a bid
+  const placeBid = async () => {
+    console.log(`Placing bid...${bidAmount}`);
+    bid(bidAmount);
+  };
+
+  // Add useEffect to watch transfer states
+  useEffect(() => {
+    if (isEncrypting) {
+      toast({
+        title: "Encrypting Transaction",
+        description: "Generating encrypted proof for your transaction...",
+      });
+    }
+  }, [isEncrypting, toast]);
+
+  useEffect(() => {
+    if (isConfirming) {
+      toast({
+        title: "Confirming Transaction",
+        description: "Waiting for confirmation...",
+      });
+    }
+  }, [isConfirming, toast]);
+
+  useEffect(() => {
+    if (isConfirmed) {
+      toast({
+        title: "Transfer Complete",
+        description: `Successfully bid ${bidAmount} ${paymentTokenSymbol}`,
+      });
+    }
+  }, [isConfirmed, bidAmount, toast, paymentTokenSymbol]);
+
+  // If not on Sepolia, show switch chain message
+  if (!isOnSepolia) {
+    return <WrongNetworkMessage />;
+  }
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-        <div className="flex items-center">
-          <Button 
-            variant="ghost" 
-            className="mr-2" 
-            onClick={() => navigate("/auctions")}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Auctions
-          </Button>
-          
-          <div>
-            <h1 className="text-3xl font-bold">Dutch Auction</h1>
-            <p className="text-muted-foreground">
-              {auctionAddress 
-                ? `Auction ${auctionAddress.slice(0, 6)}...${auctionAddress.slice(-4)}`
-                : "Bid on tokens with decreasing prices over time"}
-            </p>
-          </div>
-        </div>
-        
-        {isConnected && isSepoliaChain && (
-          <Button 
-            className="mt-4 sm:mt-0"
-            onClick={() => navigate("/deploy-auction")}
-          >
-            <Plus className="mr-2 h-4 w-4" /> Create New Auction
-          </Button>
-        )}
-      </div>
-
-      {!isSepoliaChain && (
-        <WrongNetworkMessage onSwitchNetwork={() => switchToSepolia()} />
-      )}
-
-      {isSepoliaChain && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <TokenInfo 
-                initialSupply={initialTokens} 
-                remainingSupply={remainingTokens} 
-                isLoading={isLoading}
-              />
-              
-              <AuctionStatus 
-                currentPrice={currentPrice} 
-                timeRemaining={timeRemaining}
-                formatTimeRemaining={() => formattedTimeRemaining}
-                isActive={isActive}
-                isLoading={isLoading}
-              />
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 py-8 mt-10">
+      <div className="w-full max-w-4xl space-y-6 p-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-2xl font-bold">
+                Dutch Auction
+              </CardTitle>
+              <CardDescription>
+                Token auction with decreasing price over time
+              </CardDescription>
             </div>
-            
-            <div className="grid grid-cols-1 gap-6">
-              <PriceChart data={chartData.priceChartData} />
-              <TokenSupplyChart data={chartData.tokenChartData} />
-            </div>
-          </div>
-          
-          <div className="space-y-6">
-            <BidForm 
-              currentPrice={currentPrice} 
-              isActive={isActive}
-              isLoading={isLoading}
+            <Gavel className="h-8 w-8 text-purple-500" />
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Token Information */}
+            <TokenInfo
+              tokenName={tokenName}
+              initialTokenSupply={initialTokenSupply}
+              totalTokenSupply={totalTokenSupply}
+              currentTokenSupply={currentTokenSupply}
             />
-            
-            <BidHistory bids={bids} />
-            
-            <AuctionControls />
-          </div>
-        </div>
-      )}
+
+            {/* Auction Status */}
+            <AuctionStatus
+              currentPrice={currentPrice}
+              paymentTokenSymbol={paymentTokenSymbol}
+              timeRemaining={timeRemaining}
+              isAuctionActive={isAuctionActive}
+              formatTimeRemaining={formatTimeRemaining}
+            />
+
+            {/* Price Chart */}
+            <PriceChart data={priceChartData} />
+
+            {/* Token Supply Chart */}
+            <TokenSupplyChart
+              data={tokenChartData}
+              tokenName={tokenName}
+              initialTokenSupply={initialTokenSupply}
+            />
+
+            {/* Bid Section */}
+            <BidForm
+              isAuctionActive={isAuctionActive}
+              currentTokenSupply={currentTokenSupply}
+              bidAmount={bidAmount}
+              setBidAmount={setBidAmount}
+              placeBid={placeBid}
+              address={address}
+              currentPrice={currentPrice}
+              tokenName={tokenName}
+              isBidding={isEncrypting || isPending || isConfirming}
+              paymentTokenSymbol={paymentTokenSymbol}
+            />
+
+            {/* Recent Bids */}
+            <BidHistory
+              bids={bids}
+              tokenName={tokenName}
+              paymentTokenSymbol={paymentTokenSymbol}
+            />
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
-}
+};
+
+export default Auction;

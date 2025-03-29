@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { getInstance } from "@/lib/fhevm/fhevmjs";
 import { reencryptEuint64 } from "@/lib/reencrypt";
@@ -8,9 +7,7 @@ interface UseEncryptedBalanceProps {
   signer: Signer | null;
 }
 
-export const useEncryptedBalance = ({
-  signer,
-}: UseEncryptedBalanceProps) => {
+export const useEncryptedBalance = ({ signer }: UseEncryptedBalanceProps) => {
   const [decryptedBalance, setDecryptedBalance] = useState("•••••••");
   const [lastUpdated, setLastUpdated] = useState<string>("Never");
   const [isDecrypting, setIsDecrypting] = useState(false);
@@ -22,7 +19,11 @@ export const useEncryptedBalance = ({
     try {
       if (!signer)
         throw new Error("Signer not initialized - please connect your wallet");
-      if (!handle) throw new Error("Balance not found");
+      if (!handle || handle === 0n) {
+        setDecryptedBalance("0");
+        setLastUpdated(new Date().toLocaleString());
+        return;
+      }
 
       const instance = getInstance();
       // Use type assertion to safely pass the instance

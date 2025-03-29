@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -9,25 +8,15 @@ import { useNetwork } from "@/hooks/useNetwork";
 import { Card, CardContent } from "@/components/ui/card";
 import AuctionCard from "@/components/auction/AuctionCard";
 import WrongNetworkMessage from "@/components/auction/WrongNetworkMessage";
+import { sepolia } from "wagmi/chains";
 
 export default function AuctionMain() {
   const { isConnected } = useAccount();
   const navigate = useNavigate();
   const { currentChain } = useNetwork();
-  const isSepoliaChain = currentChain?.id === 11155111; // Sepolia chain ID
+  const chain = sepolia;
   const { auctions, isLoading, error } = useAllAuctions();
   const [isRefreshing, setIsRefreshing] = useState(false);
-
-  const switchToSepolia = async () => {
-    try {
-      await window.ethereum?.request({
-        method: 'wallet_switchEthereumChain',
-        params: [{ chainId: '0xaa36a7' }], // Sepolia chain ID in hex
-      });
-    } catch (error) {
-      console.error('Failed to switch network:', error);
-    }
-  };
 
   const handleRefresh = () => {
     setIsRefreshing(true);
@@ -39,13 +28,15 @@ export default function AuctionMain() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 mt-10">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold">Auctions</h1>
-          <p className="text-muted-foreground">View and interact with ongoing Dutch auctions</p>
+          <p className="text-muted-foreground">
+            View and interact with ongoing Dutch auctions
+          </p>
         </div>
-        
+
         <div className="flex gap-2 mt-4 sm:mt-0">
           <Button
             variant="outline"
@@ -53,24 +44,20 @@ export default function AuctionMain() {
             onClick={handleRefresh}
             disabled={isRefreshing}
           >
-            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw
+              className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+            />
           </Button>
-          
-          {isConnected && isSepoliaChain && (
-            <Button 
-              onClick={() => navigate("/deploy-auction")}
-            >
+
+          {isConnected && (
+            <Button onClick={() => navigate("/deploy-auction")}>
               <Plus className="mr-2 h-4 w-4" /> Create Auction
             </Button>
           )}
         </div>
       </div>
 
-      {!isSepoliaChain && isConnected && (
-        <WrongNetworkMessage onSwitchNetwork={switchToSepolia} />
-      )}
-
-      {isConnected && isSepoliaChain && (
+      {isConnected && (
         <>
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

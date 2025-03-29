@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,14 +26,14 @@ const BidForm = ({
   currentPrice,
   tokenName,
   isBidding,
-  paymentTokenSymbol
+  paymentTokenSymbol,
 }: BidFormProps) => {
   const estimatedTokens = isNaN(parseFloat(bidAmount))
     ? 0
     : Math.min(
-      Math.floor((parseFloat(bidAmount) / currentPrice)),
-      currentTokenSupply
-    );
+        Math.floor(parseFloat(bidAmount) / currentPrice),
+        currentTokenSupply
+      );
   const canBid = isAuctionActive && currentTokenSupply > 0 && !isBidding;
   return (
     <Card>
@@ -44,7 +43,9 @@ const BidForm = ({
       <CardContent>
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="bid-amount">Bid Amount ({paymentTokenSymbol})</Label>
+            <Label htmlFor="bid-amount">
+              Amount of tokens for which you are bidding:
+            </Label>
             <div className="flex space-x-2">
               <Input
                 id="bid-amount"
@@ -54,7 +55,7 @@ const BidForm = ({
                 placeholder="Enter amount"
                 disabled={!canBid}
                 min="0"
-                step="100" // TODO: adapt from current price
+                step="1" // TODO: adapt from current price
               />
               <Button
                 onClick={placeBid}
@@ -66,19 +67,15 @@ const BidForm = ({
             </div>
             {isAuctionActive && (
               <div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="text-xs h-auto py-1"
-                  onClick={() => console.log('not implemented')}
-                  disabled={!canBid}
-                >
-                  Use Max
-                </Button>
                 <div className="mt-2 space-y-1">
+                  <p>
+                    Amount of WETHc you will have to pay:{" "}
+                    {Number(bidAmount) * currentPrice} {paymentTokenSymbol}
+                  </p>
+
                   <p className="text-sm text-purple-600">
-                    You will receive approximately {estimatedTokens} {tokenName} tokens
+                    You will receive approximately {estimatedTokens} {tokenName}{" "}
+                    tokens
                   </p>
                 </div>
               </div>

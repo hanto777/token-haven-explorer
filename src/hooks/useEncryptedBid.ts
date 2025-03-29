@@ -4,22 +4,20 @@ import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { toHexString } from "@/lib/helper";
 import { toast } from "sonner";
 import { Chain } from "wagmi/chains";
-import {
-  VITE_AUCTION_CONTRACT_ADDRESS,
-  VITE_PAYMENT_TOKEN_CONTRACT_ADDRESS,
-} from "@/config/env";
+import { VITE_PAYMENT_TOKEN_CONTRACT_ADDRESS } from "@/config/env";
 import { auctionAbi } from "@/utils/auctionAbi";
 import { confidentialErc20Abi } from "@/utils/confidentialErc20Abi";
 
-const auctionContractAddress = VITE_AUCTION_CONTRACT_ADDRESS;
 const ptContractAddress = VITE_PAYMENT_TOKEN_CONTRACT_ADDRESS;
 
 interface useEncryptedBidProps {
+  contractAddress: `0x${string}`;
   userAddress?: `0x${string}`;
   chain: Chain; // Replace with proper chain type
 }
 
 export const useEncryptedBid = ({
+  contractAddress,
   userAddress,
   chain,
 }: useEncryptedBidProps) => {
@@ -46,11 +44,11 @@ export const useEncryptedBid = ({
 
       const resultPt = await instance
         .createEncryptedInput(ptContractAddress, userAddress)
-        .add64(BigInt("10000000"))
+        .add64(BigInt("100"))
         .encrypt();
 
       const resultBid = await instance
-        .createEncryptedInput(auctionContractAddress, userAddress)
+        .createEncryptedInput(contractAddress, userAddress)
         .add64(BigInt(amount))
         .encrypt();
 
@@ -60,7 +58,7 @@ export const useEncryptedBid = ({
         abi: confidentialErc20Abi,
         functionName: "approve",
         args: [
-          auctionContractAddress, // spender
+          contractAddress, // spender
           toHexString(resultPt.handles[0]) as `0x${string}`, // encryptedAmount
           toHexString(resultPt.inputProof) as `0x${string}`, // inputProof
         ],
@@ -70,7 +68,7 @@ export const useEncryptedBid = ({
 
       // then, bid
       await writeContract({
-        address: auctionContractAddress,
+        address: contractAddress,
         abi: auctionAbi,
         functionName: "bid",
         args: [
