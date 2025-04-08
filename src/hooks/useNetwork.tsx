@@ -1,86 +1,45 @@
-import {
-  createContext,
-  useContext,
-  ReactNode,
-  useState,
-  useEffect,
-} from "react";
-import { useConfig, useChainId, useSwitchChain, useAccount } from "wagmi";
-import { mainnet, sepolia, polygon } from "wagmi/chains";
-import { toast } from "sonner";
 
-// Import Chain as a type specifically
-import type { Chain } from "wagmi/chains";
-
-export const SUPPORTED_CHAINS = [mainnet, sepolia, polygon];
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { sepolia } from "wagmi/chains";
+import { useNetwork as useWagmiNetwork } from "wagmi";
 
 interface NetworkContextType {
-  currentChain: Chain | undefined;
-  isSwitchingNetwork: boolean;
-  switchNetwork: (chainId: number) => Promise<void>;
-  supportedNetworks: Chain[];
+  chain: {
+    id: number;
+    name: string;
+  } | null;
+  isSepoliaChain: boolean;
+  switchToSepolia: () => void;
 }
 
 const NetworkContext = createContext<NetworkContextType>({
-  currentChain: undefined,
-  isSwitchingNetwork: false,
-  switchNetwork: async () => {},
-  supportedNetworks: SUPPORTED_CHAINS,
+  chain: null,
+  isSepoliaChain: false,
+  switchToSepolia: () => {},
 });
 
-export const NetworkProvider = ({ children }: { children: ReactNode }) => {
-  const config = useConfig();
-  const { isConnected } = useAccount();
-  const chainId = useChainId();
-  const { switchChainAsync, isPending } = useSwitchChain();
-  const [currentChain, setCurrentChain] = useState<Chain | undefined>(
-    undefined
-  );
-
-  // We only want to support Ethereum, Sepolia testnet, and Polygon
-  const supportedNetworks = SUPPORTED_CHAINS;
+export const NetworkProvider = ({ children }: { children: React.ReactNode }) => {
+  const { chain, switchChain } = useWagmiNetwork();
+  const [isSepoliaChain, setIsSepoliaChain] = useState(false);
 
   useEffect(() => {
-    if (isConnected && chainId) {
-      const chain = config.chains.find((c) => c.id === chainId);
-      setCurrentChain(chain);
+    setIsSepoliaChain(chain?.id === sepolia.id);
+  }, [chain]);
 
-      // Check if connected to an unsupported network
-      if (chain && !supportedNetworks.some((n) => n.id === chain.id)) {
-        toast.warning(`Network ${chain.name} is not fully supported`);
-      }
-    } else {
-      setCurrentChain(undefined);
-    }
-  }, [chainId, isConnected, config.chains, supportedNetworks]);
-
-  const switchNetwork = async (chainId: number) => {
-    if (!isConnected) {
-      toast.error("Connect your wallet first");
-      return;
-    }
-
+  const switchToSepolia = async () => {
     try {
-      await switchChainAsync({ chainId });
-      const newChain = config.chains.find((c) => c.id === chainId);
-      if (newChain) {
-        toast.success(`Switched to ${newChain.name}`);
+      if (switchChain && chain?.id !== sepolia.id) {
+        await switchChain({ chainId: sepolia.id });
       }
     } catch (error) {
-      console.error("Failed to switch network:", error);
-      toast.error("Failed to switch network");
+      console.error("Failed to switch to Sepolia:", error);
     }
-  };
-
-  const value = {
-    currentChain,
-    isSwitchingNetwork: isPending,
-    switchNetwork,
-    supportedNetworks,
   };
 
   return (
-    <NetworkContext.Provider value={value}>{children}</NetworkContext.Provider>
+    <NetworkContext.Provider value={{ chain, isSepoliaChain, switchToSepolia }}>
+      {children}
+    </NetworkContext.Provider>
   );
 };
 

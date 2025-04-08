@@ -19,7 +19,7 @@ const Dashboard = () => {
 
   return (
     <PageTransition>
-      <div className="container mx-auto px-4 pt-24 pb-16">
+      <div className="container mx-auto px-4 pt-20 pb-16">
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -41,7 +41,7 @@ const Dashboard = () => {
         </motion.div>
 
         {isConnected ? (
-          <div className="mt-12">
+          <div className="mt-8">
             <TokenList />
           </div>
         ) : (
