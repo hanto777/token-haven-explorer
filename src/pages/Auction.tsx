@@ -53,6 +53,7 @@ const Auction = () => {
     startPrice,
     hasAuctionStarted,
     initialTokenSupply,
+    seller,
     startAt,
     expiresAt,
     reservePrice,
@@ -64,6 +65,7 @@ const Auction = () => {
 
   const [bidAmount, setBidAmount] = useState<string>("0");
   const { bids } = useBidsActivity();
+  const isOwner = seller?.toLowerCase() === address?.toLowerCase();
 
   // Token data
   const { tokensLeft: currentTokenSupply, refreshTokensLeft } =
@@ -138,7 +140,7 @@ const Auction = () => {
 
   // If not on Sepolia, show switch chain message
   if (!isOnSepolia) {
-    return <WrongNetworkMessage />;
+    return <WrongNetworkMessage onSwitchNetwork={switchToSepolia} />;
   }
 
   return (
@@ -157,6 +159,8 @@ const Auction = () => {
             <Gavel className="h-8 w-8 text-purple-500" />
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* Initialize Auction */}
+            {hasAuctionStarted && isOwner}
             {/* Token Information */}
             <TokenInfo
               tokenName={tokenName}

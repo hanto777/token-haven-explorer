@@ -2,7 +2,6 @@
 
 interface ImportMetaEnv {
   readonly VITE_SEPOLIA_RPC_URL: `http${string}`;
-  readonly VITE_AUCTION_CONTRACT_ADDRESS: `0x${string}`;
   readonly VITE_AUCTION_FACTORY_CONTRACT_ADDRESS: `0x${string}`;
   readonly VITE_PAYMENT_TOKEN_CONTRACT_ADDRESS: `0x${string}`;
   readonly VITE_AUCTION_TOKEN_CONTRACT_ADDRESS: `0x${string}`;

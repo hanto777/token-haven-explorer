@@ -1,8 +1,6 @@
 import { auctionAbi } from "@/utils/auctionAbi";
 import { useReadContract } from "wagmi";
 
-// const CONTRACT_ADDRESS = VITE_AUCTION_CONTRACT_ADDRESS;
-
 export const useAuctionCurrentPrice = (address: string) => {
   const { data, refetch } = useReadContract({
     abi: auctionAbi,

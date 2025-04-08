@@ -60,7 +60,7 @@ const formSchema = z.object({
 
 export default function DeployAuction() {
   const { isConnected } = useAccount();
-  const { isSepoliaChain, ensureSepolia } = useNetwork();
+  // const { isSepoliaChain, ensureSepolia } = useNetwork();
   const { signer } = useSigner();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -88,9 +88,9 @@ export default function DeployAuction() {
       return;
     }
 
-    if (!ensureSepolia()) {
-      return;
-    }
+    // if (!ensureSepolia()) {
+    //   return;
+    // }
 
     try {
       setIsSubmitting(true);
