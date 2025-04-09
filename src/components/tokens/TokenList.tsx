@@ -15,14 +15,18 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { ArrowUpRight, LockKeyhole, UnlockKeyhole, Loader2 } from "lucide-react";
+import {
+  ArrowUpRight,
+  LockKeyhole,
+  UnlockKeyhole,
+  Loader2,
+} from "lucide-react";
 
 const TokenList = () => {
   const { tokens, isLoading, decryptToken } = useTokens();
   const [nativeToken, setNativeToken] = useState<Token | null>(null);
   const [otherTokens, setOtherTokens] = useState<Token[]>([]);
-  const { signer, loadingFhevm } = useSigner();
-  const { isSepoliaChain } = useNetwork();
+  const { signer } = useSigner();
 
   // Separate native token from other tokens
   useEffect(() => {
@@ -87,13 +91,13 @@ const TokenList = () => {
       </div>
     );
   }
-  
+
   const TokenRow = ({ token }: { token: Token }) => {
     const { decryptedBalance, lastUpdated, isDecrypting, decrypt, error } =
       useEncryptedBalance({
         signer,
       });
-    
+
     const handleDecrypt = async () => {
       if (!signer) {
         console.error("Signer not initialized - please connect your wallet");
@@ -105,7 +109,7 @@ const TokenList = () => {
         console.error("Failed to decrypt balance:", error);
       }
     };
-    
+
     return (
       <TableRow className="hover:bg-muted/60">
         <TableCell>
@@ -199,7 +203,7 @@ const TokenList = () => {
       lastUpdated: "",
       isDecrypting: false,
       decrypt: async () => {},
-      error: null
+      error: null,
     };
   };
 
