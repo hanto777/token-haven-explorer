@@ -1,3 +1,4 @@
+
 import {
   createContext,
   useContext,
@@ -11,12 +12,14 @@ import { SUPPORTED_CHAINS } from "@/config/constants";
 
 // Import Chain as a type specifically
 import type { Chain } from "wagmi/chains";
+import { sepolia } from "wagmi/chains";
 
 interface NetworkContextType {
   currentChain: Chain | undefined;
   isSwitchingNetwork: boolean;
   switchNetwork: (chainId: number) => Promise<void>;
   supportedNetworks: Chain[];
+  isSepoliaChain: boolean;
 }
 
 const NetworkContext = createContext<NetworkContextType>({
@@ -24,6 +27,7 @@ const NetworkContext = createContext<NetworkContextType>({
   isSwitchingNetwork: false,
   switchNetwork: async () => {},
   supportedNetworks: SUPPORTED_CHAINS,
+  isSepoliaChain: false,
 });
 
 export const NetworkProvider = ({ children }: { children: ReactNode }) => {
@@ -34,6 +38,7 @@ export const NetworkProvider = ({ children }: { children: ReactNode }) => {
   const [currentChain, setCurrentChain] = useState<Chain | undefined>(
     undefined
   );
+  const [isSepoliaChain, setIsSepoliaChain] = useState(false);
 
   // We only want to support Ethereum, Sepolia testnet, and Polygon
   const supportedNetworks = SUPPORTED_CHAINS;
@@ -42,6 +47,9 @@ export const NetworkProvider = ({ children }: { children: ReactNode }) => {
     if (isConnected && chainId) {
       const chain = config.chains.find((c) => c.id === chainId);
       setCurrentChain(chain);
+      
+      // Check if current chain is Sepolia
+      setIsSepoliaChain(chainId === sepolia.id);
 
       // Check if connected to an unsupported network
       if (chain && !supportedNetworks.some((n) => n.id === chain.id)) {
@@ -49,6 +57,7 @@ export const NetworkProvider = ({ children }: { children: ReactNode }) => {
       }
     } else {
       setCurrentChain(undefined);
+      setIsSepoliaChain(false);
     }
   }, [chainId, isConnected, config.chains, supportedNetworks]);
 
@@ -75,6 +84,7 @@ export const NetworkProvider = ({ children }: { children: ReactNode }) => {
     isSwitchingNetwork: isPending,
     switchNetwork,
     supportedNetworks,
+    isSepoliaChain,
   };
 
   return (

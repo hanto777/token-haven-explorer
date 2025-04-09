@@ -93,10 +93,7 @@ const TokenList = () => {
   }
 
   const TokenRow = ({ token }: { token: Token }) => {
-    const { decryptedBalance, lastUpdated, isDecrypting, decrypt, error } =
-      useEncryptedBalance({
-        signer,
-      });
+    const { decryptedBalance, isDecrypting, decrypt } = useEncryptedBalance({ signer });
 
     const handleDecrypt = async () => {
       if (!signer) {
@@ -104,7 +101,7 @@ const TokenList = () => {
         return;
       }
       try {
-        await decrypt(token.rawBalance, token.address as `0x${string}`);
+        await decrypt();
       } catch (error) {
         console.error("Failed to decrypt balance:", error);
       }

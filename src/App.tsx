@@ -11,6 +11,7 @@ import { wagmiConfig } from "@/providers/wagmiConfig";
 import { AnimatePresence } from "framer-motion";
 import { NetworkProvider } from "@/hooks/useNetwork";
 import { FhevmProvider } from "@/contexts/FhevmContext";
+import { ThemeProvider } from "@/providers/ThemeProvider";
 
 import Header from "./components/layout/Header";
 import Dashboard from "./pages/Dashboard";
@@ -35,23 +36,25 @@ function App() {
             <WalletProvider>
               <FhevmProvider>
                 <TokenProvider>
-                  <Toaster />
-                  <Sonner />
-                  <BrowserRouter>
-                    <Header />
-                    <AnimatePresence mode="wait">
-                      <Routes>
-                        <Route path="/" element={<Dashboard />} />
-                        <Route path="/transfer" element={<Transfer />} />
-                        <Route path="/swap" element={<Swap />} />
-                        <Route path="/fhevm" element={<Fhevm />} />
-                        <Route path="/auction" element={<Auction />} />
-                        <Route path="/auctions" element={<AuctionMain />} />
-                        <Route path="/deploy-auction" element={<DeployAuction />} />
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
-                    </AnimatePresence>
-                  </BrowserRouter>
+                  <ThemeProvider>
+                    <Toaster />
+                    <Sonner />
+                    <BrowserRouter>
+                      <Header />
+                      <AnimatePresence mode="wait">
+                        <Routes>
+                          <Route path="/" element={<Dashboard />} />
+                          <Route path="/transfer" element={<Transfer />} />
+                          <Route path="/swap" element={<Swap />} />
+                          <Route path="/fhevm" element={<Fhevm />} />
+                          <Route path="/auction" element={<Auction />} />
+                          <Route path="/auctions" element={<AuctionMain />} />
+                          <Route path="/deploy-auction" element={<DeployAuction />} />
+                          <Route path="*" element={<NotFound />} />
+                        </Routes>
+                      </AnimatePresence>
+                    </BrowserRouter>
+                  </ThemeProvider>
                 </TokenProvider>
               </FhevmProvider>
             </WalletProvider>

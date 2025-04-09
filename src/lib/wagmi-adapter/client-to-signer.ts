@@ -1,3 +1,4 @@
+
 import { Config, getConnectorClient } from "@wagmi/core";
 import { BrowserProvider, JsonRpcSigner } from "ethers";
 import type { Account, Chain, Client, Transport } from "viem";
@@ -15,7 +16,7 @@ export function clientToSigner(client: Client<Transport, Chain, Account>) {
 
   const network = {
     chainId: chain.id,
-    name: chain.name,
+    name: chain.name || "Unknown Chain",
     ensAddress: chain.contracts?.ensRegistry?.address,
   };
 
