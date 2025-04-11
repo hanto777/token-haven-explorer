@@ -4,7 +4,8 @@ import TokenList from "@/components/tokens/TokenList";
 import TransactionHistory from "@/components/transactions/TransactionHistory";
 import { useWallet } from "@/hooks/useWallet";
 import { Button } from "@/components/ui/button";
-import { WalletIcon, Clock } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { WalletIcon, Coins, History } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAccount } from "wagmi";
 
@@ -30,7 +31,7 @@ const Dashboard = () => {
           <span className="inline-block text-xs font-medium bg-primary/10 text-primary px-3 py-1 rounded-full mb-2">
             Dashboard
           </span>
-          <h1 className="text-4xl font-semibold tracking-tight mb-3">Your Token Portfolio</h1>
+          <h1 className="text-4xl font-semibold tracking-tight mb-3">Your Portfolio</h1>
           <p className="text-muted-foreground text-balance max-w-xl mx-auto">
             View, manage, and transfer your tokens securely from a single dashboard.
           </p>
@@ -42,27 +43,33 @@ const Dashboard = () => {
         </motion.div>
 
         {isConnected ? (
-          <div className="space-y-12">
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.1 }}
-            >
-              <TokenList />
-            </motion.div>
-            
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.2 }}
-            >
-              <h2 className="text-xl font-medium mb-4 flex items-center gap-2">
-                <Clock className="h-5 w-5" />
-                Transaction History
-              </h2>
-              <TransactionHistory />
-            </motion.div>
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            className="space-y-8"
+          >
+            <Tabs defaultValue="tokens" className="w-full">
+              <TabsList className="w-full max-w-md mx-auto grid grid-cols-2 mb-6">
+                <TabsTrigger value="tokens" className="flex items-center gap-2">
+                  <Coins className="h-4 w-4" />
+                  <span>Tokens</span>
+                </TabsTrigger>
+                <TabsTrigger value="transactions" className="flex items-center gap-2">
+                  <History className="h-4 w-4" />
+                  <span>Transactions</span>
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="tokens" className="mt-0">
+                <TokenList />
+              </TabsContent>
+              
+              <TabsContent value="transactions" className="mt-0">
+                <TransactionHistory />
+              </TabsContent>
+            </Tabs>
+          </motion.div>
         ) : (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}

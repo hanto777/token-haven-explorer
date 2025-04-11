@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useTransactions } from "@/hooks/useTransactions";
 import { motion } from "framer-motion";
@@ -61,10 +60,7 @@ const TransactionHistory = () => {
   
   if (isLoading) {
     return (
-      <div className="space-y-8">
-        <div className="mb-4">
-          <Skeleton className="h-7 w-40" />
-        </div>
+      <div className="space-y-4">
         <div className="space-y-2">
           {[...Array(3)].map((_, i) => (
             <div key={i} className="h-[60px]">
