@@ -1,4 +1,3 @@
-
 import { ReactNode, useState, useEffect } from 'react';
 import { useWallet } from '@/hooks/useWallet';
 import { useAccount } from 'wagmi';

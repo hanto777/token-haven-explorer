@@ -11,6 +11,10 @@ interface NetworkContextType {
   chainName: string;
   networkColor: string;
   switchToSepolia: () => Promise<void>;
+  // To fix build errors in other components, add these properties
+  currentChain?: string;
+  switchNetwork?: (chainId: number) => Promise<void>;
+  supportedNetworks?: { id: number; name: string }[];
 }
 
 const NetworkContext = createContext<NetworkContextType>({
@@ -33,6 +37,14 @@ export const NetworkProvider = ({ children }: { children: ReactNode }) => {
     chainName: "Unknown",
     networkColor: "text-gray-500"
   });
+  
+  // Define supported networks to fix build errors in other components
+  const supportedNetworks = [
+    { id: 11155111, name: "Sepolia" },
+    { id: 1, name: "Ethereum" },
+    { id: 80001, name: "Mumbai" },
+    { id: 137, name: "Polygon" }
+  ];
   
   useEffect(() => {
     let isMainnet = false;
@@ -106,8 +118,28 @@ export const NetworkProvider = ({ children }: { children: ReactNode }) => {
     }
   };
   
+  // Function to switch to any network - to fix build errors in other components
+  const switchNetwork = async (chainId: number) => {
+    try {
+      await switchChain({ chainId });
+      toast.success(`Network switched to ${supportedNetworks.find(n => n.id === chainId)?.name || 'new network'}`);
+    } catch (error) {
+      console.error("Failed to switch network:", error);
+      toast.error("Failed to switch network", {
+        description: "Please try switching networks manually in your wallet"
+      });
+    }
+  };
+  
   return (
-    <NetworkContext.Provider value={{ ...networkState, switchToSepolia }}>
+    <NetworkContext.Provider value={{ 
+      ...networkState, 
+      switchToSepolia,
+      // Add these properties to fix build errors in other components
+      currentChain: chainName,
+      switchNetwork,
+      supportedNetworks
+    }}>
       {children}
     </NetworkContext.Provider>
   );
