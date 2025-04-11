@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useTokens, Token } from "@/hooks/useTokens";
 import { motion, AnimatePresence } from "framer-motion";
@@ -206,7 +207,7 @@ const TokenList = () => {
               </TableHeader>
               <TableBody>
                 {tokens.map((token) => (
-                  <TokenRow token={token} />
+                  <TokenRow key={token.id} token={token} />
                 ))}
               </TableBody>
             </Table>

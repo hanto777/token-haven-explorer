@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { WagmiProvider } from "wagmi";
 import { WalletProvider } from "@/hooks/useWallet";
 import { TokenProvider } from "@/providers/TokenProvider";
+import { TransactionProvider } from "@/providers/TransactionProvider";
 import { wagmiConfig } from "@/providers/wagmiConfig";
 import { AnimatePresence } from "framer-motion";
 import { NetworkProvider } from "@/hooks/useNetwork";
@@ -26,8 +27,6 @@ import DeployAuction from "./pages/DeployAuction";
 const queryClient = new QueryClient();
 
 function App() {
-  if (!import.meta.env.VITE_KMS_ADDRESS)
-    throw new Error("Missing VITE_KMS_ADDRESS environment variable");
   return (
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
@@ -36,25 +35,27 @@ function App() {
             <WalletProvider>
               <FhevmProvider>
                 <TokenProvider>
-                  <ThemeProvider>
-                    <Toaster />
-                    <Sonner />
-                    <BrowserRouter>
-                      <Header />
-                      <AnimatePresence mode="wait">
-                        <Routes>
-                          <Route path="/" element={<Dashboard />} />
-                          <Route path="/transfer" element={<Transfer />} />
-                          <Route path="/swap" element={<Swap />} />
-                          <Route path="/fhevm" element={<Fhevm />} />
-                          <Route path="/auction" element={<Auction />} />
-                          <Route path="/auctions" element={<AuctionMain />} />
-                          <Route path="/deploy-auction" element={<DeployAuction />} />
-                          <Route path="*" element={<NotFound />} />
-                        </Routes>
-                      </AnimatePresence>
-                    </BrowserRouter>
-                  </ThemeProvider>
+                  <TransactionProvider>
+                    <ThemeProvider>
+                      <Toaster />
+                      <Sonner />
+                      <BrowserRouter>
+                        <Header />
+                        <AnimatePresence mode="wait">
+                          <Routes>
+                            <Route path="/" element={<Dashboard />} />
+                            <Route path="/transfer" element={<Transfer />} />
+                            <Route path="/swap" element={<Swap />} />
+                            <Route path="/fhevm" element={<Fhevm />} />
+                            <Route path="/auction" element={<Auction />} />
+                            <Route path="/auctions" element={<AuctionMain />} />
+                            <Route path="/deploy-auction" element={<DeployAuction />} />
+                            <Route path="*" element={<NotFound />} />
+                          </Routes>
+                        </AnimatePresence>
+                      </BrowserRouter>
+                    </ThemeProvider>
+                  </TransactionProvider>
                 </TokenProvider>
               </FhevmProvider>
             </WalletProvider>

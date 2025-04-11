@@ -1,9 +1,10 @@
 
 import PageTransition from "@/components/layout/PageTransition";
 import TokenList from "@/components/tokens/TokenList";
+import TransactionHistory from "@/components/transactions/TransactionHistory";
 import { useWallet } from "@/hooks/useWallet";
 import { Button } from "@/components/ui/button";
-import { WalletIcon } from "lucide-react";
+import { WalletIcon, Clock } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAccount } from "wagmi";
 
@@ -41,8 +42,26 @@ const Dashboard = () => {
         </motion.div>
 
         {isConnected ? (
-          <div className="mt-8">
-            <TokenList />
+          <div className="space-y-12">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+            >
+              <TokenList />
+            </motion.div>
+            
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.2 }}
+            >
+              <h2 className="text-xl font-medium mb-4 flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                Transaction History
+              </h2>
+              <TransactionHistory />
+            </motion.div>
           </div>
         ) : (
           <motion.div

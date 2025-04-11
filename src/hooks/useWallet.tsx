@@ -8,6 +8,7 @@ interface WalletContextType {
   address: string | undefined;
   isReady: boolean;
   openConnectModal?: () => void;
+  openAccountModal?: () => void;
   switchAccount?: () => void;
 }
 
@@ -35,6 +36,13 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
       console.error('Failed to connect wallet:', error);
       toast.error('Failed to connect wallet');
     }
+  };
+
+  // Dummy function for account modal - in real app would use Web3Modal or similar
+  const openAccountModal = async () => {
+    toast.info('Account details', {
+      description: `Connected: ${address?.slice(0, 6)}...${address?.slice(-4)}`,
+    });
   };
 
   // Add function to switch accounts
@@ -75,6 +83,7 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
     address,
     isReady,
     openConnectModal,
+    openAccountModal,
     switchAccount
   };
   
