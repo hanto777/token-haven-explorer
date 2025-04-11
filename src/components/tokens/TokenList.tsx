@@ -24,30 +24,7 @@ import {
 
 const TokenList = () => {
   const { tokens, isLoading, decryptToken } = useTokens();
-  const [nativeToken, setNativeToken] = useState<Token | null>(null);
-  const [otherTokens, setOtherTokens] = useState<Token[]>([]);
   const { signer } = useSigner();
-
-  // Separate native token from other tokens
-  useEffect(() => {
-    if (!isLoading && tokens.length > 0) {
-      const native = tokens.find((t) => t.address === "native") || null;
-      const others = tokens.filter((t) => t.address !== "native");
-
-      setNativeToken(native);
-
-      // Stagger loading of other tokens
-      setOtherTokens([]);
-      others.forEach((token, index) => {
-        setTimeout(() => {
-          setOtherTokens((prev) => [...prev, token]);
-        }, index * 100);
-      });
-    } else {
-      setNativeToken(null);
-      setOtherTokens([]);
-    }
-  }, [tokens, isLoading]);
 
   const formatValue = (value: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -93,7 +70,9 @@ const TokenList = () => {
   }
 
   const TokenRow = ({ token }: { token: Token }) => {
-    const { decryptedBalance, isDecrypting, decrypt } = useEncryptedBalance({ signer });
+    const { decryptedBalance, isDecrypting, decrypt } = useEncryptedBalance({
+      signer,
+    });
 
     const handleDecrypt = async () => {
       if (!signer) {
@@ -206,44 +185,14 @@ const TokenList = () => {
 
   return (
     <div className="space-y-10">
-      {/* Native Currency Section */}
-      {nativeToken && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <h2 className="text-xl font-medium mb-4 flex items-center gap-2">
-            <Coins className="h-5 w-5" />
-            Native Token
-          </h2>
-          <div className="w-full overflow-hidden rounded-lg border bg-card">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Token</TableHead>
-                  <TableHead>Balance</TableHead>
-                  <TableHead>Value</TableHead>
-                  <TableHead>24h</TableHead>
-                  <TableHead className="w-[50px]">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TokenRow token={nativeToken} />
-              </TableBody>
-            </Table>
-          </div>
-        </motion.div>
-      )}
-
       {/* Other Tokens Section */}
-      {otherTokens.length > 0 && (
+      {tokens.length > 0 && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3, delay: 0.2 }}
         >
-          <h2 className="text-xl font-medium mb-4">Other Tokens</h2>
+          <h2 className="text-xl font-medium mb-4">Tokens</h2>
           <div className="w-full overflow-hidden rounded-lg border bg-card">
             <Table>
               <TableHeader>
@@ -256,19 +205,9 @@ const TokenList = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <AnimatePresence>
-                  {otherTokens.map((token) => (
-                    <motion.tr
-                      key={token.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="border-b hover:bg-muted/60"
-                    >
-                      <TokenRow token={token} />
-                    </motion.tr>
-                  ))}
-                </AnimatePresence>
+                {tokens.map((token) => (
+                  <TokenRow token={token} />
+                ))}
               </TableBody>
             </Table>
           </div>
