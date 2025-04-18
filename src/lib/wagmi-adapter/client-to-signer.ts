@@ -1,35 +1,28 @@
 
-import { Config, getConnectorClient } from "@wagmi/core";
-import { BrowserProvider, JsonRpcSigner } from "ethers";
-import type { Account, Chain, Client, Transport } from "viem";
+import { useChainId, type PublicClient, useConfig } from "wagmi";
+import { ethers } from "ethers";
 
-export function clientToSigner(client: Client<Transport, Chain, Account>) {
-  const { account, chain, transport } = client;
+export const clientToSigner = (publicClient: PublicClient) => {
+  // Use publicClient.account and chain directly
+  const chain = publicClient.chain;
+  const account = publicClient.account;
 
-  if (!chain) {
-    throw new Error("Chain information not available");
+  if (!chain || !account) {
+    throw new Error("Chain or account not found");
   }
 
-  if (!account) {
-    throw new Error("Account information not available");
-  }
-
+  // Create mock provider
   const network = {
     chainId: chain.id,
-    name: chain.name || "Unknown Chain",
-    ensAddress: chain.contracts?.ensRegistry?.address,
+    name: chain.name,
+    ensAddress: undefined,
   };
 
-  const provider = new BrowserProvider(transport, network);
-  const signer = new JsonRpcSigner(provider, account.address);
-  return signer;
-}
+  // Create a provider using the network configuration
+  const provider = new ethers.JsonRpcProvider(chain.rpcUrls.default.http[0], network);
 
-/** Action to convert a viem Wallet Client to an ethers.js Signer. */
-export async function getEthersSigner(
-  config: Config,
-  { chainId }: { chainId?: number } = {}
-) {
-  const client = await getConnectorClient(config, { chainId });
-  return clientToSigner(client);
-}
+  // Create and return the signer
+  const signer = new ethers.JsonRpcSigner(provider, account.address);
+
+  return signer;
+};

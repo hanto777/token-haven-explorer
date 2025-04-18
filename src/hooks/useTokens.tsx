@@ -1,21 +1,19 @@
-
 import { useContext } from 'react';
-import TokenContext from '@/contexts/TokenContext';
-import { Token, TokenContextType } from '@/types/tokenTypes';
-import { useWriteContract, useAccount, useChainId } from 'wagmi';
+import { useTokenStore } from '@/stores/useTokenStore';
+import { useAccount, useChainId, useWriteContract } from 'wagmi';
 import { mainnet, sepolia, polygon, optimism, arbitrum } from 'wagmi/chains';
 import { toast } from 'sonner';
 import { erc20Abi } from '@/utils/erc20Abi';
 import { confidentialErc20Abi } from '@/utils/confidentialErc20Abi';
 import { Chain, parseUnits } from 'viem';
 
-export type { Token, TokenContextType };
+export type { Token } from '@/types/tokenTypes';
 export { default as TokenProvider } from '@/providers/TokenProvider';
 
 export const useTokens = () => {
-  const context = useContext(TokenContext);
   const { address } = useAccount();
   const chainId = useChainId();
+  const tokenStore = useTokenStore();
   
   const { 
     data: hash, 
@@ -25,10 +23,10 @@ export const useTokens = () => {
     isSuccess,
     writeContract 
   } = useWriteContract();
-  
+
   const sendToken = async (id: string, to: string, amount: string): Promise<boolean> => {
     try {
-      const token = context.tokens.find(t => t.id === id);
+      const token = tokenStore.tokens.find(t => t.id === id);
       
       if (!token) {
         throw new Error("Token not found");
@@ -36,7 +34,7 @@ export const useTokens = () => {
       
       // Native token transactions are handled separately in NativeTransferForm
       if (token.address === 'native') {
-        return context.sendToken(id, to, amount);
+        return tokenStore.sendToken(id, to, amount);
       }
       
       // Get token decimals (default to 18 if not specified)
@@ -121,8 +119,10 @@ export const useTokens = () => {
   };
   
   return {
-    ...context,
-    sendToken,
+    tokens: tokenStore.tokens,
+    isLoading: tokenStore.isLoading,
+    decryptToken: tokenStore.decryptToken,
+    sendToken: tokenStore.sendToken,
     transferState: {
       hash,
       isPending,
