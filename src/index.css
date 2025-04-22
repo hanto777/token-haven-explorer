@@ -47,6 +47,11 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 240 5.9% 90%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Add new tokens for swap interface */
+    --swap-card-bg: 0 0% 100%;
+    --swap-card-border: 0 0% 90%;
+    --swap-input-bg: 0 0% 98%;
   }
 
   .dark {
@@ -86,6 +91,11 @@
     --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Add new tokens for swap interface */
+    --swap-card-bg: 240 10% 3.9%;
+    --swap-card-border: 240 3.7% 15.9%;
+    --swap-input-bg: 240 10% 3.9%;
   }
 }
 

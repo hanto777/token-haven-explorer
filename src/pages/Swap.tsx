@@ -1,13 +1,12 @@
+
 import PageTransition from "@/components/layout/PageTransition";
-import SwapForm from "@/components/transfers/SwapForm";
 import { useWallet } from "@/hooks/useWallet";
-import { Button } from "@/components/ui/button";
-import { WalletIcon, ArrowLeftRight } from "lucide-react";
-import { motion } from "framer-motion";
 import WalletNotConnected from "@/components/wallet/WalletNotConnected";
+import SwapForm from "@/components/transfers/SwapForm";
+import { motion } from "framer-motion";
 
 const Swap = () => {
-  const { isConnected, openConnectModal } = useWallet();
+  const { isConnected } = useWallet();
 
   return (
     <PageTransition>
@@ -16,18 +15,16 @@ const Swap = () => {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="mb-8 text-center"
+          className="mb-12 text-center"
         >
-          <h1 className="text-4xl font-semibold tracking-tight mb-3">
-            Swap to Confidential
-          </h1>
-          <p className="text-muted-foreground text-balance max-w-xl mx-auto">
+          <h1 className="font-medium text-6xl mb-4">Swap confidential</h1>
+          <p className="text-muted-foreground text-lg">
             Swap your tokens to confidential versions for enhanced privacy.
           </p>
         </motion.div>
 
         {isConnected ? (
-          <div className="mt-8 max-w-md mx-auto">
+          <div className="mt-8 max-w-xl mx-auto">
             <SwapForm />
           </div>
         ) : (
