@@ -4,10 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node scripts/dev.js",
-    "dev-mocked": "MOCKED=true node scripts/dev.js",
+    "dev": "vite dev",
     "build": "tsc && vite build",
-    "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -40,8 +38,11 @@
     "@radix-ui/react-toggle": "^1.1.0",
     "@radix-ui/react-toggle-group": "^1.1.0",
     "@radix-ui/react-tooltip": "^1.1.4",
+    "@reown/appkit": "1.7.2",
+    "@reown/appkit-adapter-wagmi": "1.7.2",
     "@tanstack/react-query": "^5.56.2",
     "@wagmi/core": "^2.16.7",
+    "alchemy-sdk": "^3.5.6",
     "bigint-buffer": "^1.1.5",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -54,7 +55,7 @@
     "idb": "^8.0.2",
     "input-otp": "^1.2.4",
     "lucide-react": "^0.462.0",
-    "next-themes": "^0.4.6",
+    "next-themes": "^0.3.0",
     "react": "^18.3.1",
     "react-day-picker": "^8.10.1",
     "react-dom": "^18.3.1",
@@ -69,8 +70,7 @@
     "viem": "^2.23.12",
     "wagmi": "^2.14.15",
     "web3-validator": "^2.0.6",
-    "zod": "^3.23.8",
-    "zustand": "^4.5.6"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",

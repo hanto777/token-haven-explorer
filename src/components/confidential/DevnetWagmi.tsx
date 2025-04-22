@@ -7,14 +7,15 @@ import { useAccount, useConfig } from "wagmi";
 import { sepolia } from "wagmi/chains";
 import { type BaseError } from "wagmi";
 import { VITE_PAYMENT_TOKEN_CONTRACT_ADDRESS } from "@/config/env";
-import { useEncryptedBalance } from "@/hooks/useEncryptedBalance";
-import { useEncryptedTransfer } from "@/hooks/useEncryptedTransfer";
+import { useEncryptedBalance } from "@/hooks/token/useEncryptedBalance";
+import { useConfidentialTransfer } from "@/hooks/token/transfer/useConfidentialTransfer";
 import { useSigner } from "@/hooks/useSigner";
 import { useAddressValidation } from "@/hooks/useAddressValidation";
-import { useTokenBalance } from "@/hooks/useTokenBalance";
+import { useTokenBalance } from "@/hooks/token/useTokenBalance";
+import { useWallet } from "@/hooks/useWallet";
 
 export const DevnetWagmi = () => {
-  const { address } = useAccount();
+  const { address } = useWallet();
   const chain = sepolia;
   const contractAddress = VITE_PAYMENT_TOKEN_CONTRACT_ADDRESS;
   const { signer } = useSigner();
@@ -44,7 +45,7 @@ export const DevnetWagmi = () => {
     isConfirmed,
     transferHash,
     transferError,
-  } = useEncryptedTransfer({
+  } = useConfidentialTransfer({
     userAddress: address,
     chain,
   });

@@ -9,6 +9,7 @@ import { useAccount, useChainId } from "wagmi";
 import { sepolia } from "wagmi/chains";
 import { createFhevmInstance } from "@/lib/fhevm/fhevmjs";
 import { init } from "@/lib/fhevm/fhevmjs";
+import { useWallet } from "@/hooks/useWallet";
 
 interface FhevmContextType {
   loading: boolean;
@@ -21,7 +22,7 @@ export const FhevmContext = createContext<FhevmContextType | undefined>(
 );
 
 export function FhevmProvider({ children }: { children: ReactNode }) {
-  const { isConnected } = useAccount();
+  const { isConnected } = useWallet();
   const [loading, setLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
   const chainId = useChainId();

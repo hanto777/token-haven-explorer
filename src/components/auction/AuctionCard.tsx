@@ -1,23 +1,34 @@
-
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Clock, Tag, User, ArrowRight, CheckCircle, XCircle } from "lucide-react";
-import { AuctionSummary } from "@/hooks/use-all-auctions";
-import { useAuctionCurrentPrice, useAuctionDetails } from "@/hooks/use-auction";
+import {
+  ExternalLink,
+  Clock,
+  Tag,
+  User,
+  ArrowRight,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
+import { AuctionSummary } from "@/hooks/auction/useAllAuctions";
+import {
+  useAuctionCurrentPrice,
+  useAuctionDetails,
+} from "@/hooks/auction/useAuction";
 import { useAccount } from "wagmi";
 import { formatAddress, formatTime } from "@/lib/helper";
 import { Badge } from "@/components/ui/badge";
+import { useWallet } from "@/hooks/useWallet";
 
 interface AuctionCardProps {
   auction: AuctionSummary;
   variant?: "active" | "ended" | "owned" | "default";
 }
 
-const AuctionCard: React.FC<AuctionCardProps> = ({ 
-  auction, 
-  variant = "default" 
+const AuctionCard: React.FC<AuctionCardProps> = ({
+  auction,
+  variant = "default",
 }) => {
   const navigate = useNavigate();
   const shortAddress = formatAddress(auction.address);
@@ -31,7 +42,7 @@ const AuctionCard: React.FC<AuctionCardProps> = ({
   } = useAuctionDetails(auction.address);
   const { currentPrice } = useAuctionCurrentPrice(auction.address);
 
-  const { address } = useAccount();
+  const { address } = useWallet();
   const isOwner = seller?.toLowerCase() === address?.toLowerCase();
   const now = Math.floor(Date.now() / 1000);
   const isExpired = expiresAt ? expiresAt < now : false;
@@ -74,33 +85,45 @@ const AuctionCard: React.FC<AuctionCardProps> = ({
   const getStatusBadge = () => {
     if (isOwner) {
       return (
-        <Badge variant="outline" className="bg-purple-100 text-purple-800 px-2 py-1 flex items-center gap-1">
+        <Badge
+          variant="outline"
+          className="bg-purple-100 text-purple-800 px-2 py-1 flex items-center gap-1"
+        >
           <User className="h-3 w-3" />
           Your Auction
         </Badge>
       );
     }
-    
+
     if (isExpired) {
       return (
-        <Badge variant="outline" className="bg-red-100 text-red-800 px-2 py-1 flex items-center gap-1">
+        <Badge
+          variant="outline"
+          className="bg-red-100 text-red-800 px-2 py-1 flex items-center gap-1"
+        >
           <XCircle className="h-3 w-3" />
           Ended
         </Badge>
       );
     }
-    
+
     if (isActive) {
       return (
-        <Badge variant="outline" className="bg-green-100 text-green-800 px-2 py-1 flex items-center gap-1">
+        <Badge
+          variant="outline"
+          className="bg-green-100 text-green-800 px-2 py-1 flex items-center gap-1"
+        >
           <CheckCircle className="h-3 w-3" />
           Active
         </Badge>
       );
     }
-    
+
     return (
-      <Badge variant="outline" className="bg-amber-100 text-amber-800 px-2 py-1 flex items-center gap-1">
+      <Badge
+        variant="outline"
+        className="bg-amber-100 text-amber-800 px-2 py-1 flex items-center gap-1"
+      >
         <Clock className="h-3 w-3" />
         Not Started
       </Badge>
@@ -132,7 +155,9 @@ const AuctionCard: React.FC<AuctionCardProps> = ({
                     : "text-green-600 font-medium"
                 }
               >
-                {isExpired ? "Auction ended" : `${calculateTimeRemaining()} left`}
+                {isExpired
+                  ? "Auction ended"
+                  : `${calculateTimeRemaining()} left`}
               </span>
             </div>
           )}
@@ -146,14 +171,12 @@ const AuctionCard: React.FC<AuctionCardProps> = ({
             </div>
           )}
 
-          <div className="mt-4 space-y-3 p-2 bg-muted/30 rounded-md">
+          <div className="mt-4 space-y-3 p-2 bg-muted rounded-md">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Current Price:</span>
-              <span className="font-medium">
-                {formattedCurrentPrice} WETHc
-              </span>
+              <span className="font-medium">{formattedCurrentPrice} WETHc</span>
             </div>
-            
+
             {/* Show start time and expiry for all auctions */}
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Starts At:</span>
@@ -163,13 +186,15 @@ const AuctionCard: React.FC<AuctionCardProps> = ({
               <span className="text-muted-foreground">Expires At:</span>
               <span className="font-medium">{formatDate(expiresAt)}</span>
             </div>
-            
+
             {/* Show price details for owner */}
             {isOwner && (
               <>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Starting Price:</span>
-                  <span className="font-medium">{formattedStartPrice} WETHc</span>
+                  <span className="font-medium">
+                    {formattedStartPrice} WETHc
+                  </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Reserve Price:</span>
@@ -190,13 +215,13 @@ const AuctionCard: React.FC<AuctionCardProps> = ({
           onClick={() => navigate(`/auction?address=${auction.address}`)}
         >
           <span className="flex items-center gap-2">
-            {isExpired 
-              ? "View Details" 
-              : hasAuctionStarted 
-                ? "View Auction" 
-                : isOwner 
-                  ? "Initialize Auction" 
-                  : "View Details"}
+            {isExpired
+              ? "View Details"
+              : hasAuctionStarted
+              ? "View Auction"
+              : isOwner
+              ? "Initialize Auction"
+              : "View Details"}
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </span>
         </Button>

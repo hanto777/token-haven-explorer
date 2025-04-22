@@ -8,7 +8,7 @@ interface UseEncryptedBalanceProps {
 }
 
 export const useEncryptedBalance = ({ signer }: UseEncryptedBalanceProps) => {
-  const [decryptedBalance, setDecryptedBalance] = useState("•••••••");
+  const [decryptedBalance, setDecryptedBalance] = useState<bigint | null>(null);
   const [lastUpdated, setLastUpdated] = useState<string>("Never");
   const [isDecrypting, setIsDecrypting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,25 +20,28 @@ export const useEncryptedBalance = ({ signer }: UseEncryptedBalanceProps) => {
       if (!signer)
         throw new Error("Signer not initialized - please connect your wallet");
       if (!handle || handle === 0n) {
-        setDecryptedBalance("0");
+        setDecryptedBalance(0n);
         setLastUpdated(new Date().toLocaleString());
         return;
       }
 
       const instance = getInstance();
       // Use type assertion to safely pass the instance
+      console.log(handle, contractAddress);
       const clearBalance = await reencryptEuint64(
         signer,
         instance as any, // Use type assertion to resolve the type error
         BigInt(handle),
         contractAddress
       );
-      setDecryptedBalance(clearBalance.toString());
+      console.log(clearBalance.toString());
+
+      setDecryptedBalance(clearBalance);
       setLastUpdated(new Date().toLocaleString());
     } catch (error) {
       console.error("Decryption error:", error);
       if (error === "Handle is not initialized") {
-        setDecryptedBalance("0");
+        setDecryptedBalance(0n);
       } else {
         setError(
           error instanceof Error ? error.message : "Failed to decrypt balance"

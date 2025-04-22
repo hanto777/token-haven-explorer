@@ -1,96 +1,81 @@
-
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { useWallet } from "@/hooks/useWallet";
-import NetworkSwitcher from "@/components/wallet/NetworkSwitcher";
+import { motion } from "framer-motion";
+import ConnectWallet from "@/components/wallet/ConnectWallet";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 const Header = () => {
+  const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
-  const { isConnected, openConnectModal, openAccountModal } = useWallet();
 
-  const handleConnect = () => {
-    if (!isConnected && openConnectModal) {
-      openConnectModal();
-    } else if (isConnected && openAccountModal) {
-      openAccountModal();
-    }
-  };
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 10);
+    };
 
-  // Define our navigation groups
-  const portfolioLinks = [
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const navItems = [
     { name: "Dashboard", path: "/" },
     { name: "Transfer", path: "/transfer" },
     { name: "Swap", path: "/swap" },
   ];
 
-  const auctionLinks = [
-    { name: "Auctions", path: "/auctions" },
-    { name: "Deploy", path: "/deploy-auction" },
-  ];
-
-  // Check which section we're in
-  const isPortfolioSection = portfolioLinks.some((link) => link.path === location.pathname);
-  const isAuctionSection = auctionLinks.some((link) => link.path === location.pathname);
-
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center">
-        <div className="mr-4 hidden md:flex">
-          <Link to="/" className="mr-6 flex items-center space-x-2">
-            <span className="font-bold text-xl">dApp</span>
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 px-6 py-4 transition-all duration-300 ${
+        scrolled
+          ? "bg-background/80 backdrop-blur-md shadow-sm"
+          : "bg-transparent"
+      }`}
+    >
+      <div className="container mx-auto font-telegraf">
+        <div className="flex items-center justify-between">
+          <Link to="/" className="flex items-center space-x-2">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.3 }}
+              className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center"
+            >
+              <span className="text-primary-foreground font-semibold">Z</span>
+            </motion.div>
           </Link>
-          <nav className="flex items-center space-x-6 text-sm font-medium">
-            <div className="flex items-center space-x-2 mr-6">
-              <div className="font-semibold text-sm text-muted-foreground">Portfolio:</div>
-              {portfolioLinks.map((link) => (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  className={cn(
-                    "transition-colors hover:text-foreground/80",
-                    location.pathname === link.path
-                      ? "text-foreground font-semibold"
-                      : "text-foreground/60"
-                  )}
+
+          <nav className="hidden md:flex items-center space-x-1">
+            {navItems.map((item, i) => (
+              <Link key={item.path} to={item.path}>
+                <Button
+                  variant={
+                    location.pathname === item.path ? "secondary" : "ghost"
+                  }
+                  size="sm"
+                  className="relative"
                 >
-                  {link.name}
-                </Link>
-              ))}
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="font-semibold text-sm text-muted-foreground">Auctions:</div>
-              {auctionLinks.map((link) => (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  className={cn(
-                    "transition-colors hover:text-foreground/80",
-                    location.pathname === link.path
-                      ? "text-foreground font-semibold"
-                      : "text-foreground/60"
+                  {location.pathname === item.path && (
+                    <motion.div
+                      layoutId="activeTab"
+                      className="absolute inset-0 bg-secondary rounded-md"
+                      transition={{
+                        duration: 0.2,
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 30,
+                      }}
+                    />
                   )}
-                >
-                  {link.name}
-                </Link>
-              ))}
-            </div>
+                  <span className="relative z-10">{item.name}</span>
+                </Button>
+              </Link>
+            ))}
           </nav>
-        </div>
-        <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
-          <div className="w-full flex-1 md:w-auto md:flex-none">
-            {/* Mobile menu button */}
-            <Button variant="outline" size="sm" className="md:hidden">
-              Menu
-            </Button>
-          </div>
+
           <div className="flex items-center gap-2">
-            <NetworkSwitcher />
             <ThemeToggle />
-            <Button onClick={handleConnect} size="sm">
-              {isConnected ? "Account" : "Connect"}
-            </Button>
+            <ConnectWallet />
           </div>
         </div>
       </div>

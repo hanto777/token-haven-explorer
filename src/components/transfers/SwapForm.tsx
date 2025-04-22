@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { useTokens, Token } from "@/hooks/useTokens";
-import { useTokenBalance } from "@/hooks/useTokenBalance";
+import { useTokens, Token } from "@/hooks/token/useTokens";
+import { useTokenBalance } from "@/hooks/token/useTokenBalance";
 import { useAccount, useChainId } from "wagmi";
 import { sepolia } from "wagmi/chains";
 import { Button } from "@/components/ui/button";
@@ -26,13 +26,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import TransactionStatus from "./TransactionStatus";
 import { toast } from "sonner";
 import { type BaseError } from "wagmi";
-import { useWrapSwap } from "@/hooks/useWrapSwap";
+import { useWrapSwap } from "@/hooks/token/useWrapSwap";
 import { parseEther } from "viem";
 import SwapSuccessMessage from "./SwapSuccessMessage";
+import { useWallet } from "@/hooks/useWallet";
 
 const SwapForm = () => {
   const { tokens } = useTokens();
-  const { address } = useAccount();
+  const { address } = useWallet();
   const chainId = useChainId();
   const {
     wrap,
@@ -43,7 +44,7 @@ const SwapForm = () => {
     wrapHash,
     wrapError: error,
   } = useWrapSwap({
-    userAddress: address,
+    userAddress: address as `0x${string}`,
     chain: sepolia,
   });
 
@@ -228,7 +229,7 @@ const SwapForm = () => {
               onSubmit={handleWrap}
               className="space-y-6"
             >
-              <div className="border rounded-lg p-4 bg-muted/50">
+              <div className="border p-4">
                 <div className="space-y-2">
                   <Label htmlFor="source-token">From</Label>
                   <Select
@@ -243,7 +244,7 @@ const SwapForm = () => {
                       {eligibleTokens.map((token) => (
                         <SelectItem key={token.id} value={token.id}>
                           <div className="flex items-center gap-2">
-                            <div className="w-5 h-5 rounded-full overflow-hidden bg-muted flex items-center justify-center">
+                            <div className="w-5 h-5 overflow-hidden flex items-center justify-center">
                               {token.logo ? (
                                 <img
                                   src={token.logo}
@@ -272,11 +273,24 @@ const SwapForm = () => {
                     <div className="flex justify-between">
                       <Label htmlFor="amount">Amount</Label>
                       {sourceToken && (
-                        <span className="text-xs text-muted-foreground">
-                          Balance: {displayBalance} {sourceToken.symbol}
-                        </span>
+                        <div className="flex justify-start py-1">
+                          <span className="text-xs text-muted-foreground">
+                            Balance: {displayBalance} {sourceToken.symbol}
+                          </span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="text-xs h-auto"
+                            onClick={() => setAmount(displayBalance)}
+                            disabled={isPendingTransfer}
+                          >
+                            Use Max
+                          </Button>
+                        </div>
                       )}
                     </div>
+
                     <div className="relative">
                       <Input
                         id="amount"
@@ -296,26 +310,13 @@ const SwapForm = () => {
                         </div>
                       )}
                     </div>
-
-                    {sourceToken && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="text-xs h-auto py-1"
-                        onClick={() => setAmount(displayBalance)}
-                        disabled={isPendingTransfer}
-                      >
-                        Use Max
-                      </Button>
-                    )}
                   </div>
                 </div>
               </div>
 
               <div className="flex justify-center -my-2">
                 <div className="bg-muted rounded-full p-2 border">
-                  <ArrowDownUp className="h-5 w-5 text-muted-foreground" />
+                  <ArrowDownUp className="h-5 w-5" />
                 </div>
               </div>
 
@@ -363,7 +364,7 @@ const SwapForm = () => {
                   </div>
 
                   <div className="mt-2">
-                    <div className="border border-dashed rounded-md p-3 bg-muted/30">
+                    <div className="border border-dashed rounded-md p-3 bg-muted">
                       <div className="flex items-center gap-2">
                         <Lock className="h-4 w-4 text-muted-foreground" />
                         <p className="text-sm text-muted-foreground">

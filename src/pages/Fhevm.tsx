@@ -1,11 +1,12 @@
 // Update this page (the content is just a fallback if you fail to update the page)
 import { DevnetWagmi } from "@/components/confidential/DevnetWagmi";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useWallet } from "@/hooks/useWallet";
 import { useAccount, useChainId } from "wagmi";
 import { sepolia } from "wagmi/chains";
 
 const Fhevm = () => {
-  const { address } = useAccount();
+  const { address } = useWallet();
 
   const chainId = useChainId();
 

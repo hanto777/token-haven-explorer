@@ -1,4 +1,3 @@
-
 import PageTransition from "@/components/layout/PageTransition";
 import TransferForm from "@/components/transfers/TransferForm";
 import NativeTransferForm from "@/components/transfers/NativeTransferForm";
@@ -9,26 +8,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WalletIcon, CoinsIcon, BanknoteIcon, LockIcon } from "lucide-react";
 import { motion } from "framer-motion";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import WalletNotConnected from "@/components/wallet/WalletNotConnected";
+import UniversalTransferForm from "@/components/transfers/UniversalTransferForm";
 
 const Transfer = () => {
   const { isConnected } = useWallet();
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const initialToken = searchParams.get('token');
-  const initialTab = searchParams.get('tab') || (initialToken === '1' ? 'native' : 'tokens');
-
-  // Update URL when tab changes
-  const handleTabChange = (value: string) => {
-    if (value === 'native') {
-      navigate('/transfer?tab=native&token=1', { replace: true });
-    } else if (value === 'tokens') {
-      navigate('/transfer?tab=tokens', { replace: true });
-    } else if (value === 'confidential') {
-      navigate('/transfer?tab=confidential', { replace: true });
-    } else {
-      navigate(`/transfer?tab=${value}`, { replace: true });
-    }
-  };
 
   return (
     <PageTransition>
@@ -39,10 +23,9 @@ const Transfer = () => {
           transition={{ duration: 0.3 }}
           className="mb-8 text-center"
         >
-          <span className="inline-block text-xs font-medium bg-primary/10 text-primary px-3 py-1 rounded-full mb-2">
-            Transfer
-          </span>
-          <h1 className="text-4xl font-semibold tracking-tight mb-3">Send Assets</h1>
+          <h1 className="text-4xl font-semibold tracking-tight mb-3">
+            Send Assets
+          </h1>
           <p className="text-muted-foreground text-balance max-w-xl mx-auto">
             Transfer your assets to any address securely and easily.
           </p>
@@ -50,19 +33,34 @@ const Transfer = () => {
 
         {isConnected ? (
           <div className="mt-8 max-w-md mx-auto">
-            <Tabs defaultValue={initialTab} onValueChange={handleTabChange} className="w-full">
-              <TabsList className="grid grid-cols-3 mb-6">
+            <UniversalTransferForm />
+            {/*             
+            <Tabs
+              defaultValue={initialTab}
+              onValueChange={handleTabChange}
+              className="w-full"
+            >
+              <TabsList className="grid grid-cols-4 mb-6">
                 <TabsTrigger value="native" className="flex items-center gap-2">
                   <BanknoteIcon className="h-4 w-4" />
-                  <span>Send Balance</span>
+                  <span>Send Native</span>
                 </TabsTrigger>
                 <TabsTrigger value="tokens" className="flex items-center gap-2">
                   <CoinsIcon className="h-4 w-4" />
                   <span>Send Tokens</span>
                 </TabsTrigger>
-                <TabsTrigger value="confidential" className="flex items-center gap-2">
+                <TabsTrigger
+                  value="confidential"
+                  className="flex items-center gap-2"
+                >
                   <LockIcon className="h-4 w-4" />
                   <span>Confidential</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="universal"
+                  className="flex items-center gap-2"
+                >
+                  <span>Universal</span>
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="native">
@@ -74,24 +72,13 @@ const Transfer = () => {
               <TabsContent value="confidential">
                 <ConfidentialTransferForm />
               </TabsContent>
-            </Tabs>
+              <TabsContent value="universal">
+                
+              </TabsContent>
+            </Tabs> */}
           </div>
         ) : (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2, duration: 0.3 }}
-            className="flex flex-col items-center justify-center mt-12 p-12 border border-dashed rounded-lg bg-muted/30 max-w-md mx-auto"
-          >
-            <WalletIcon className="h-12 w-12 text-muted-foreground mb-4" />
-            <h2 className="text-xl font-medium mb-2">Connect Your Wallet</h2>
-            <p className="text-muted-foreground text-center max-w-md mb-6">
-              Connect your wallet to transfer tokens.
-            </p>
-            <Button size="lg" className="mt-2">
-              Connect Wallet
-            </Button>
-          </motion.div>
+          <WalletNotConnected />
         )}
       </div>
     </PageTransition>

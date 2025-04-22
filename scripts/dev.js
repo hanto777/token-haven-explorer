@@ -8,11 +8,11 @@ import { build, preview } from "vite";
       DEV: false,
       PROD: true,
       preview: {
-        port: 3001,
+        port: 8080,
       },
     });
     console.log("Preview server is running...");
-    console.log("Listening on http://localhost:3001\n");
+    console.log("Listening on http://localhost:3000\n");
 
     const watcher = await build({
       build: {

@@ -15,7 +15,7 @@ import TransactionStatus from "../TransactionStatus";
 import NetworkWarning from "./NetworkWarning";
 import { Token } from "@/types/tokenTypes";
 import { sepolia } from "wagmi/chains";
-import { useTokenBalance } from "@/hooks/useTokenBalance";
+import { useTokenBalance } from "@/hooks/token/useTokenBalance";
 
 interface ConfidentialTransferFormFieldsProps {
   isOnSepolia: boolean;
@@ -48,12 +48,12 @@ const ConfidentialTransferFormFields = ({
 }: ConfidentialTransferFormFieldsProps) => {
   const { toast } = useToast();
   const { signer } = useSigner();
-  const { address } = useAccount();
-  console.log("address", address);
+  const { address } = useWallet();
+  // console.log("address", address);
 
   const token = confidentialTokens.find((t) => t.id === selectedTokenId);
-  console.log("address", address);
-  console.log("token: ", token);
+  // console.log("address", address);
+  // console.log("token: ", token);
 
   // Use the token balance hook to get real-time balance
   const tokenBalance = useTokenBalance({
@@ -275,7 +275,8 @@ const ConfidentialTransferFormFields = ({
 // Need to import here to avoid circular dependency
 import { useToast } from "@/hooks/use-toast";
 import { useSigner } from "@/hooks/useSigner";
-import { useEncryptedBalance } from "@/hooks/useEncryptedBalance";
+import { useEncryptedBalance } from "@/hooks/token/useEncryptedBalance";
 import { useAccount } from "wagmi";
+import { useWallet } from "@/hooks/useWallet";
 
 export default ConfidentialTransferFormFields;

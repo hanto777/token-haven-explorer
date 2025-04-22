@@ -1,175 +1,218 @@
+import { useEffect, useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { useAccount, useChainId } from "wagmi";
+import { sepolia } from "wagmi/chains";
+import { Gavel } from "lucide-react";
 
-import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import PageTransition from "@/components/layout/PageTransition";
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import BidHistory from "@/components/auction/BidHistory";
-import BidForm from "@/components/auction/BidForm";
-import AuctionStatus from "@/components/auction/AuctionStatus";
+// Import components
+import { useToast } from "@/components/ui/use-toast";
 import TokenInfo from "@/components/auction/TokenInfo";
+import AuctionStatus from "@/components/auction/AuctionStatus";
 import PriceChart from "@/components/auction/PriceChart";
-import AuctionControls from "@/components/auction/AuctionControls";
 import TokenSupplyChart from "@/components/auction/TokenSupplyChart";
-import { useAuction } from "@/hooks/use-auction";
-import { useAccount } from "wagmi";
-import { ArrowLeftIcon } from "lucide-react";
-import { Link } from "react-router-dom";
-import { useNetwork } from "@/hooks/useNetwork";
+import BidForm from "@/components/auction/BidForm";
+import BidHistory from "@/components/auction/BidHistory";
 import WrongNetworkMessage from "@/components/auction/WrongNetworkMessage";
 
-interface RouteParams {
-  id: string;
-}
+// Import hooks
+import { useAuctionTimer } from "@/hooks/auction/useAuctionTimer";
+import { useAuctionChartData } from "@/hooks/auction/useAuctionChartData";
+import { useAuctionToken } from "@/hooks/auction/useAuctionToken";
+import { useAuctionPaymentToken } from "@/hooks/auction/useAuctionPaymentToken";
+import {
+  useAuctionCurrentPrice,
+  useAuctionDetails,
+  useAuctionTokensLeft,
+} from "@/hooks/auction/useAuction";
+import { useEncryptedBid } from "@/hooks/auction/useEncryptedBid";
+import { useBidsActivity } from "@/hooks/auction/useBidsActivity";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useWallet } from "@/hooks/useWallet";
 
 const Auction = () => {
-  const [selectedTab, setSelectedTab] = useState("bid");
-  const { address } = useAccount();
-  const { isSepoliaChain, switchToSepolia } = useNetwork();
-  
-  // Mock data for demo
-  const auctionState = {
-    isLoaded: true,
-    isLoading: false,
-    error: null,
-    isStarted: true,
-    isEnded: false,
-    isFinalized: false,
-    isAuctioneer: false,
-    totalTokensForSale: "1000000",
-    totalCollectedPaymentTokens: "520",
-    remainingTokensForSale: "300000",
-    tokenAddress: "0x123...abc",
-    paymentTokenAddress: "0xdef...456",
-    minimumPrice: "0.05",
-    tokenName: "Demo Token",
-    tokenSymbol: "DEMO",
-    paymentTokenName: "Test USD",
-    paymentTokenSymbol: "TUSD",
-    startTime: Math.floor(Date.now() / 1000) - 86400 * 2,
-    endTime: Math.floor(Date.now() / 1000) + 86400 * 3,
-    address: "0x789...def",
+  const { address, switchToSepolia } = useWallet();
+  const chainId = useChainId();
+  const isOnSepolia = chainId === sepolia.id;
+  const { toast } = useToast();
+  const location = useLocation();
+
+  const queryParams = new URLSearchParams(location.search);
+
+  const auctionAddress = queryParams.get("address");
+
+  const { tokenName, totalTokenSupply } = useAuctionToken();
+  const { paymentTokenSymbol } = useAuctionPaymentToken();
+  const { refreshCurrentPrice, currentPrice } =
+    useAuctionCurrentPrice(auctionAddress);
+  const {
+    startPrice,
+    hasAuctionStarted,
+    initialTokenSupply,
+    seller,
+    startAt,
+    expiresAt,
+    reservePrice,
+    discountRate,
+  } = useAuctionDetails(auctionAddress);
+
+  // Dutch auction state
+  const [endPrice, setEndPrice] = useState<number>(10);
+
+  const [bidAmount, setBidAmount] = useState<string>("0");
+  const { bids } = useBidsActivity();
+  const isOwner = seller?.toLowerCase() === address?.toLowerCase();
+
+  // Token data
+  const { tokensLeft: currentTokenSupply, refreshTokensLeft } =
+    useAuctionTokensLeft(auctionAddress);
+
+  // Use custom hooks
+  // TODO: use discountRate to calculate steps
+  const { timeRemaining, formatTimeRemaining } = useAuctionTimer({
+    startAt,
+    expiresAt,
+    discountRate,
+    hasAuctionStarted,
+    refreshCurrentPrice,
+    refreshTokensLeft,
+  });
+
+  const { priceChartData, tokenChartData, setTokenChartData } =
+    useAuctionChartData({
+      startPrice,
+      endPrice,
+      duration: (expiresAt - startAt) / 3600, // TODO fix
+      initialTokenSupply,
+      reservePrice,
+    });
+
+  const {
+    bid,
+    isEncrypting,
+    isPending,
+    isConfirming,
+    isConfirmed,
+    transferHash,
+    transferError,
+  } = useEncryptedBid({
+    contractAddress: auctionAddress as `0x${string}`,
+    userAddress: address as `0x${string}`,
+    chain: sepolia,
+  });
+  // Place a bid
+  const placeBid = async () => {
+    console.log(`Placing bid...${bidAmount}`);
+    bid(bidAmount);
   };
-  
-  // Mock data for demo
-  const userBidsState = {
-    isLoaded: true,
-    isLoading: false,
-    userBids: [
-      {
-        id: "1",
-        amount: "100",
-        price: "0.1",
-        timestamp: Date.now() - 1000 * 60 * 60,
-        value: 10,
-      },
-      {
-        id: "2",
-        amount: "200",
-        price: "0.12",
-        timestamp: Date.now() - 1000 * 60 * 30,
-        value: 24,
-      },
-    ],
-  };
-  
-  // We can make a complete mockup for demo purposes
-  const demoAuction = {
-    ...auctionState,
-    ...userBidsState,
-    isOwnerViewingAuction: Math.random() > 0.5,
-    userHasBids: true,
-    bidCount: 37,
-    highestBid: "0.25",
-    lowestBid: "0.07",
-    averageBid: "0.15",
-    tokenPrice: "0.18",
-    yourTokensAtCurrentPrice: "133.33",
-  };
+
+  // Add useEffect to watch transfer states
+  useEffect(() => {
+    if (isEncrypting) {
+      toast({
+        title: "Encrypting Transaction",
+        description: "Generating encrypted proof for your transaction...",
+      });
+    }
+  }, [isEncrypting, toast]);
+
+  useEffect(() => {
+    if (isConfirming) {
+      toast({
+        title: "Confirming Transaction",
+        description: "Waiting for confirmation...",
+      });
+    }
+  }, [isConfirming, toast]);
+
+  useEffect(() => {
+    if (isConfirmed) {
+      toast({
+        title: "Transfer Complete",
+        description: `Successfully bid ${bidAmount} ${paymentTokenSymbol}`,
+      });
+    }
+  }, [isConfirmed, bidAmount, toast, paymentTokenSymbol]);
+
+  // If not on Sepolia, show switch chain message
+  if (!isOnSepolia) {
+    return <WrongNetworkMessage onSwitchNetwork={switchToSepolia} />;
+  }
 
   return (
-    <PageTransition>
-      <div className="container mx-auto px-4 pt-20 pb-16">
-        <div className="flex items-center mb-8">
-          <Link to="/auctions" className="flex items-center text-sm text-muted-foreground hover:text-primary mr-4">
-            <ArrowLeftIcon className="h-4 w-4 mr-1" />
-            Back to Auctions
-          </Link>
-          <h1 className="text-2xl font-semibold">
-            {demoAuction.tokenName} ({demoAuction.tokenSymbol}) Auction
-          </h1>
-        </div>
-
-        {!isSepoliaChain && (
-          <WrongNetworkMessage 
-            onSwitch={switchToSepolia} 
-            expectedNetwork="Sepolia Testnet" 
-          />
-        )}
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-xl">Price Chart</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <PriceChart data={[]} />
-              </CardContent>
-            </Card>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-xl">Token Supply</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <TokenSupplyChart 
-                    totalSupply={Number(demoAuction.totalTokensForSale)} 
-                    remainingSupply={Number(demoAuction.remainingTokensForSale)} 
-                  />
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-xl">Token Information</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <TokenInfo 
-                    tokenSymbol={demoAuction.tokenSymbol}
-                    tokenAddress={demoAuction.tokenAddress}
-                    paymentTokenSymbol={demoAuction.paymentTokenSymbol}
-                    paymentTokenAddress={demoAuction.paymentTokenAddress}
-                  />
-                </CardContent>
-              </Card>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 py-8 mt-10">
+      <div className="w-full max-w-4xl space-y-6 p-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-2xl font-bold">
+                Dutch Auction
+              </CardTitle>
+              <CardDescription>
+                Token auction with decreasing price over time
+              </CardDescription>
             </div>
-          </div>
-          
-          <div className="space-y-6">
-            <AuctionStatus 
-              startTime={demoAuction.startTime}
-              endTime={demoAuction.endTime}
-              isStarted={demoAuction.isStarted}
-              isEnded={demoAuction.isEnded}
-              isFinalized={demoAuction.isFinalized}
+            <Gavel className="h-8 w-8 text-purple-500" />
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Initialize Auction */}
+            {hasAuctionStarted && isOwner}
+            {/* Token Information */}
+            <TokenInfo
+              tokenName={tokenName}
+              initialTokenSupply={initialTokenSupply}
+              totalTokenSupply={totalTokenSupply}
+              currentTokenSupply={currentTokenSupply}
             />
-            
-            {demoAuction.isStarted && !demoAuction.isEnded && (
-              <BidForm />
-            )}
-            
-            {demoAuction.isOwnerViewingAuction && demoAuction.isEnded && !demoAuction.isFinalized && (
-              <AuctionControls />
-            )}
-            
-            <BidHistory bids={[]} />
-          </div>
-        </div>
+
+            {/* Auction Status */}
+            <AuctionStatus
+              currentPrice={currentPrice}
+              paymentTokenSymbol={paymentTokenSymbol}
+              timeRemaining={timeRemaining}
+              hasAuctionStarted={hasAuctionStarted}
+              formatTimeRemaining={formatTimeRemaining}
+            />
+
+            {/* Price Chart */}
+            <PriceChart data={priceChartData} />
+
+            {/* Token Supply Chart */}
+            <TokenSupplyChart
+              data={tokenChartData}
+              tokenName={tokenName}
+              initialTokenSupply={initialTokenSupply}
+            />
+
+            {/* Bid Section */}
+            <BidForm
+              hasAuctionStarted={hasAuctionStarted}
+              currentTokenSupply={currentTokenSupply}
+              bidAmount={bidAmount}
+              setBidAmount={setBidAmount}
+              placeBid={placeBid}
+              address={address}
+              currentPrice={currentPrice}
+              tokenName={tokenName}
+              isBidding={isEncrypting || isPending || isConfirming}
+              paymentTokenSymbol={paymentTokenSymbol}
+            />
+
+            {/* Recent Bids */}
+            <BidHistory
+              bids={bids}
+              tokenName={tokenName}
+              paymentTokenSymbol={paymentTokenSymbol}
+            />
+          </CardContent>
+        </Card>
       </div>
-    </PageTransition>
+    </div>
   );
 };
 

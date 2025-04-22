@@ -1,8 +1,5 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useConnect, useAccount, useDisconnect } from 'wagmi';
-import { injected } from 'wagmi/connectors';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,22 +10,20 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { motion, AnimatePresence } from "framer-motion";
 import { Wallet, LogOut, ChevronDown, UsersRound } from "lucide-react";
-import NetworkSwitcher from "./NetworkSwitcher";
 import { useWallet } from "@/hooks/useWallet";
+import { useAppKitAccount } from "@reown/appkit/react";
 
 const ConnectWallet = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const { connectAsync } = useConnect();
-  const { isConnected, address } = useAccount();
-  const { disconnectAsync } = useDisconnect();
-  const { switchAccount } = useWallet();
+  const { openConnectModal, disconnect } = useWallet();
+  const { address, isConnected } = useAppKitAccount();
 
   const handleConnect = async () => {
     try {
       setIsLoading(true);
-      await connectAsync({ connector: injected() });
+      openConnectModal();
     } catch (error) {
-      console.error('Failed to connect wallet:', error);
+      console.error("Failed to connect wallet:", error);
     } finally {
       setIsLoading(false);
     }
@@ -40,8 +35,6 @@ const ConnectWallet = () => {
 
   return (
     <div className="flex items-center gap-2">
-      <NetworkSwitcher />
-      
       <AnimatePresence mode="wait">
         {!isConnected ? (
           <motion.div
@@ -51,8 +44,8 @@ const ConnectWallet = () => {
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.2 }}
           >
-            <Button 
-              onClick={handleConnect} 
+            <Button
+              onClick={handleConnect}
               disabled={isLoading}
               className="relative overflow-hidden group"
             >
@@ -75,35 +68,14 @@ const ConnectWallet = () => {
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.2 }}
           >
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="gap-2">
-                  <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                  {address && formatAddress(address)}
-                  <ChevronDown className="h-4 w-4 opacity-50" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                
-                <DropdownMenuItem 
-                  className="flex cursor-pointer items-center gap-2"
-                  onClick={() => switchAccount && switchAccount()}
-                >
-                  <UsersRound className="h-4 w-4" />
-                  Switch Account
-                </DropdownMenuItem>
-                
-                <DropdownMenuItem 
-                  className="flex cursor-pointer items-center gap-2 text-destructive focus:text-destructive"
-                  onClick={() => disconnectAsync()}
-                >
-                  <LogOut className="h-4 w-4" />
-                  Disconnect
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button
+              variant="outline"
+              className="flex cursor-pointer items-center gap-2"
+              onClick={() => openConnectModal()}
+            >
+              <span className="w-2 h-2 bg-green-500"></span>
+              {address && formatAddress(address)}
+            </Button>
           </motion.div>
         )}
       </AnimatePresence>

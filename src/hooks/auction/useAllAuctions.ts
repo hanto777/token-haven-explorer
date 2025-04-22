@@ -1,11 +1,10 @@
 import { useState, useEffect, useMemo } from "react";
 import { readContract } from "wagmi/actions";
-import { useAccount } from "wagmi";
-import { useNetwork } from "@/hooks/useNetwork";
 import { factoryAuctionAbi } from "@/utils/factoryAuctionAbi";
 import { VITE_AUCTION_FACTORY_CONTRACT_ADDRESS } from "@/config/env";
-import { wagmiConfig } from "@/providers/wagmiConfig";
 import { auctionAbi } from "@/utils/auctionAbi";
+import { useWallet } from "../useWallet";
+import { wagmiAdapter } from "@/config";
 
 export interface AuctionSummary {
   address: `0x${string}`;
@@ -15,15 +14,14 @@ export interface AuctionSummary {
 }
 
 export function useAllAuctions() {
-  const { address, isConnected } = useAccount();
-  const { currentChain } = useNetwork();
+  const { address, isConnected } = useWallet();
   const [auctions, setAuctions] = useState<AuctionSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     const fetchAuctions = async () => {
-      if (!isConnected || !currentChain) {
+      if (!isConnected) {
         setAuctions([]);
         setIsLoading(false);
         return;
@@ -34,7 +32,7 @@ export function useAllAuctions() {
         setError(null);
 
         // Read all auctions from the factory contract
-        const result = await readContract(wagmiConfig, {
+        const result = await readContract(wagmiAdapter.wagmiConfig, {
           address: VITE_AUCTION_FACTORY_CONTRACT_ADDRESS as `0x${string}`,
           abi: factoryAuctionAbi,
           functionName: "getAllAuctions",
@@ -61,23 +59,32 @@ export function useAllAuctions() {
           const auctionDetailsPromises = auctionAddresses.map(
             async (auctionAddress) => {
               try {
-                const hasStarted = await readContract(wagmiConfig, {
-                  address: auctionAddress,
-                  abi: auctionAbi,
-                  functionName: "auctionStart",
-                });
+                const hasStarted = await readContract(
+                  wagmiAdapter.wagmiConfig,
+                  {
+                    address: auctionAddress,
+                    abi: auctionAbi,
+                    functionName: "auctionStart",
+                  }
+                );
 
-                const expiresAtResult = await readContract(wagmiConfig, {
-                  address: auctionAddress,
-                  abi: auctionAbi,
-                  functionName: "expiresAt",
-                });
+                const expiresAtResult = await readContract(
+                  wagmiAdapter.wagmiConfig,
+                  {
+                    address: auctionAddress,
+                    abi: auctionAbi,
+                    functionName: "expiresAt",
+                  }
+                );
 
-                const sellerResult = await readContract(wagmiConfig, {
-                  address: auctionAddress,
-                  abi: auctionAbi,
-                  functionName: "seller",
-                });
+                const sellerResult = await readContract(
+                  wagmiAdapter.wagmiConfig,
+                  {
+                    address: auctionAddress,
+                    abi: auctionAbi,
+                    functionName: "seller",
+                  }
+                );
 
                 return {
                   address: auctionAddress,
@@ -126,7 +133,7 @@ export function useAllAuctions() {
     };
 
     fetchAuctions();
-  }, [isConnected, currentChain, address]);
+  }, [isConnected, address]);
 
   // Filter for active auctions
   const activeAuctions = useMemo(() => {

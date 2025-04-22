@@ -1,5 +1,4 @@
-
-import { Token } from "@/hooks/useTokens";
+import { Token } from "@/hooks/token/useTokens";
 import TokenBalanceDisplay from "../TokenBalanceDisplay";
 
 interface NativeTokenHeaderProps {
@@ -15,15 +14,18 @@ interface NativeTokenHeaderProps {
   };
 }
 
-const NativeTokenHeader = ({ nativeToken, tokenBalance }: NativeTokenHeaderProps) => {
+const NativeTokenHeader = ({
+  nativeToken,
+  tokenBalance,
+}: NativeTokenHeaderProps) => {
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
         <div className="w-6 h-6 rounded-full overflow-hidden bg-muted flex items-center justify-center">
           {nativeToken.logo ? (
-            <img 
-              src={nativeToken.logo} 
-              alt={nativeToken.name} 
+            <img
+              src={nativeToken.logo}
+              alt={nativeToken.name}
               className="w-5 h-5 object-contain"
             />
           ) : (
@@ -32,11 +34,11 @@ const NativeTokenHeader = ({ nativeToken, tokenBalance }: NativeTokenHeaderProps
         </div>
         <h3 className="text-lg font-medium">Send {tokenBalance.symbol}</h3>
       </div>
-      
-      <TokenBalanceDisplay 
-        balance={tokenBalance.balance} 
-        symbol={tokenBalance.symbol || ''} 
-        isLoading={tokenBalance.isLoading} 
+
+      <TokenBalanceDisplay
+        balance={tokenBalance.balance}
+        symbol={tokenBalance.symbol || ""}
+        isLoading={tokenBalance.isLoading}
       />
     </div>
   );

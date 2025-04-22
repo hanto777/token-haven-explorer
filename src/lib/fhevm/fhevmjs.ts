@@ -1,25 +1,13 @@
-import { isAddress } from 'ethers';
-import {
-  initFhevm,
-  createInstance,
-  FhevmInstance,
-  createEIP712,
-  generateKeypair,
-} from 'fhevmjs';
+import { isAddress } from "ethers";
+import { initFhevm, createInstance, FhevmInstance } from "fhevmjs/bundle";
 import {
   getPublicKey,
   getPublicParams,
   storePublicKey,
   storePublicParams,
-} from './fhevmStorage';
-
-import {
-  reencryptRequestMocked,
-  createEncryptedInputMocked,
-} from './fhevmjsMocked';
+} from "./fhevmStorage";
 
 const ACL_ADDRESS: string = import.meta.env.VITE_ACL_ADDRESS;
-const MOCKED: string = import.meta.env.MOCKED;
 
 export type Keypair = {
   publicKey: string;
@@ -33,9 +21,7 @@ type Keypairs = {
   };
 };
 
-export const init = async () => {
-  await initFhevm({ thread: navigator.hardwareConcurrency });
-};
+export const init = initFhevm;
 
 let instancePromise: Promise<FhevmInstance>;
 let instance: FhevmInstance;
@@ -50,7 +36,7 @@ export const createFhevmInstance = async () => {
   const storedPublicParams = await getPublicParams(ACL_ADDRESS);
   const publicParams = storedPublicParams
     ? {
-        '2048': storedPublicParams,
+        "2048": storedPublicParams,
       }
     : null;
   instancePromise = createInstance({
@@ -76,7 +62,7 @@ export const createFhevmInstance = async () => {
 export const setKeypair = (
   contractAddress: string,
   userAddress: string,
-  keypair: Keypair,
+  keypair: Keypair
 ) => {
   if (!isAddress(contractAddress) || !isAddress(userAddress)) return;
   keypairs[userAddress][contractAddress] = keypair;
@@ -84,7 +70,7 @@ export const setKeypair = (
 
 export const getKeypair = (
   contractAddress: string,
-  userAddress: string,
+  userAddress: string
 ): Keypair | null => {
   if (!isAddress(contractAddress) || !isAddress(userAddress)) return null;
   return keypairs[userAddress]
@@ -92,17 +78,6 @@ export const getKeypair = (
     : null;
 };
 
-export const getInstance = () => {
-  if (MOCKED) {
-    const instanceMocked = {
-      reencrypt: reencryptRequestMocked,
-      createEncryptedInput: createEncryptedInputMocked,
-      getPublicKey: () => '0xFFAA44433',
-      generateKeypair: generateKeypair,
-      createEIP712: createEIP712(31337),
-    };
-    return instanceMocked;
-  } else {
-    return instance;
-  }
+export const getInstance = (): FhevmInstance => {
+  return instance;
 };

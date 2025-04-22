@@ -1,59 +1,52 @@
 import { useEffect, useState } from "react";
 import { useBalance, useReadContract, useChainId } from "wagmi";
-import { formatUnits } from "viem";
+// import { formatUnits } from "viem";
 import { mainnet, sepolia, polygon } from "wagmi/chains";
-
-// ERC-20 ABI for the balanceOf function
-const erc20ABI = [
-  {
-    constant: true,
-    inputs: [{ name: "owner", type: "address" }],
-    name: "balanceOf",
-    outputs: [{ name: "balance", type: "uint256" }],
-    type: "function",
-  },
-  {
-    constant: true,
-    inputs: [],
-    name: "decimals",
-    outputs: [{ name: "", type: "uint8" }],
-    type: "function",
-  },
-  {
-    constant: true,
-    inputs: [],
-    name: "symbol",
-    outputs: [{ name: "", type: "string" }],
-    type: "function",
-  },
-];
+import { formatUnits } from "@/lib/helper";
+import { erc20Abi } from "@/utils/erc20Abi";
+import { useSigner } from "../useSigner";
+import { useEncryptedBalance } from "./useEncryptedBalance";
+import { Signer } from "ethers";
 
 interface UseTokenBalanceProps {
   address?: string;
   tokenAddress: string;
+  isConfidential?: boolean;
   enabled?: boolean;
 }
 
 export function useTokenBalance({
   address,
   tokenAddress,
+  isConfidential = false,
   enabled = true,
 }: UseTokenBalanceProps) {
   const chainId = useChainId();
   const [balance, setBalance] = useState("0");
   const [rawBalance, setRawBalance] = useState<bigint>(BigInt(0));
-  const [value, setValue] = useState(0);
+  const [value, setValue] = useState<string | number>(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [tokenSymbol, setTokenSymbol] = useState<string>("");
   const [tokenDecimals, setTokenDecimals] = useState<number>(18);
 
   const isNativeToken = tokenAddress === "native";
+  const { signer } = useSigner();
+
+  const {
+    decryptedBalance,
+    lastUpdated,
+    isDecrypting,
+    decrypt: decryptBalance,
+    error: decryptionError,
+  } = useEncryptedBalance({
+    signer,
+  });
 
   // Remove tokenData and add separate queries for symbol and decimals
   const tokenSymbolData = useReadContract({
     address: isNativeToken ? undefined : (tokenAddress as `0x${string}`),
-    abi: erc20ABI,
+    abi: erc20Abi,
     functionName: "symbol",
     query: {
       enabled: enabled && !isNativeToken && !!tokenAddress,
@@ -62,7 +55,7 @@ export function useTokenBalance({
 
   const tokenDecimalsData = useReadContract({
     address: isNativeToken ? undefined : (tokenAddress as `0x${string}`),
-    abi: erc20ABI,
+    abi: erc20Abi,
     functionName: "decimals",
     query: {
       enabled: enabled && !isNativeToken && !!tokenAddress,
@@ -80,7 +73,7 @@ export function useTokenBalance({
   // ERC20 token balance query using balanceOf
   const tokenBalanceData = useReadContract({
     address: isNativeToken ? undefined : (tokenAddress as `0x${string}`),
-    abi: erc20ABI,
+    abi: erc20Abi,
     functionName: "balanceOf",
     args: address ? [address as `0x${string}`] : undefined,
     query: {
@@ -100,17 +93,18 @@ export function useTokenBalance({
       }
 
       if (nativeBalanceData.data && !nativeBalanceData.isLoading) {
-        const formattedBalance = nativeBalanceData.data.formatted;
+        const formattedBalance = formatUnits(
+          nativeBalanceData.data.value,
+          nativeBalanceData.data.decimals
+        );
         setBalance(formattedBalance);
         setRawBalance(nativeBalanceData.data.value);
 
         // Get the appropriate token price based on the current network
         let nativePrice = 1940; // Default ETH price
-        let nativeSymbol = "ETH";
 
         if (chainId === polygon.id) {
           nativePrice = 1.1; // MATIC price
-          nativeSymbol = "MATIC";
         }
 
         setValue(parseFloat(formattedBalance) * nativePrice);
@@ -167,9 +161,39 @@ export function useTokenBalance({
 
         setValue(parseFloat(formattedBalance) * mockPrice);
       }
+
+      // For Confidential tokens
+      if (isConfidential) {
+        if (decryptedBalance || decryptedBalance === 0n) {
+          const rawBalance = decryptedBalance;
+          setRawBalance(rawBalance);
+          const formattedBalance = formatUnits(decryptedBalance, tokenDecimals);
+          setBalance(formattedBalance);
+          // Mock price calculation based on token symbol
+          const mockPrice =
+            tokenSymbol === "LINK"
+              ? 11.5
+              : tokenSymbol === "MATIC"
+              ? 1.1
+              : tokenSymbol === "WETH"
+              ? 1940
+              : tokenSymbol === "WETHc"
+              ? 1940
+              : tokenSymbol === "UNI"
+              ? 9.8
+              : 5;
+
+          setValue(parseFloat(formattedBalance) * mockPrice);
+        } else {
+          setBalance("•••••••");
+          setValue("•••••••");
+        }
+      }
     }
   }, [
     isNativeToken,
+    isConfidential,
+    decryptedBalance,
     chainId,
     nativeBalanceData.data,
     nativeBalanceData.isLoading,
@@ -201,11 +225,20 @@ export function useTokenBalance({
     return "Ethereum"; // Default
   };
 
+  const decrypt = async () => {
+    if (isConfidential) {
+      await decryptBalance(rawBalance, tokenAddress as `0x${string}`);
+    }
+  };
+
   return {
     balance,
     rawBalance,
+    decryptedBalance,
     value,
+    decrypt,
     isLoading,
+    isDecrypting,
     error,
     symbol: isNativeToken ? getNativeSymbol() : tokenSymbol,
     name: isNativeToken ? getNativeName() : tokenSymbol,

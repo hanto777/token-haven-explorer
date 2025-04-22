@@ -22,10 +22,10 @@ export default defineConfig(({ mode }) => ({
   },
   server: {
     host: "::",
-    headers: {
-      "Cross-Origin-Opener-Policy": "same-origin",
-      "Cross-Origin-Embedder-Policy": "require-corp",
-    },
+    // headers: {
+    //   "Cross-Origin-Opener-Policy": "same-origin",
+    //   "Cross-Origin-Embedder-Policy": "require-corp",
+    // },
   },
   worker: {
     format: "es",

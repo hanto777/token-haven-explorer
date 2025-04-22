@@ -1,49 +1,50 @@
-import { useState } from "react";
-import { getInstance } from "@/lib/fhevm/fhevmjs";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { toHexString } from "@/lib/helper";
 import { toast } from "sonner";
-import { Chain } from "wagmi/chains";
+import { useChain } from "@/hooks/useChain";
+import { useWallet } from "@/hooks/useWallet";
+import { parseUnits } from "viem";
+import { useEncrypt } from "@/hooks/fhevm/useEncrypt";
+import { useState } from "react";
 
-interface UseEncryptedTransferProps {
-  userAddress?: `0x${string}`;
-  chain: Chain; // Replace with proper chain type
-}
-
-export const useEncryptedTransfer = ({
-  userAddress,
-  chain,
-}: UseEncryptedTransferProps) => {
-  const [isEncrypting, setIsEncrypting] = useState(false);
-
+export const useConfidentialTransfer = () => {
+  const { address } = useWallet();
+  const { chain } = useChain();
+  const { encryptAmount, isEncrypting } = useEncrypt();
   const {
-    data: transferHash,
-    error: transferError,
+    data: hash,
     isPending,
+    isError,
+    error,
+    isSuccess,
     writeContract,
+    reset,
   } = useWriteContract();
 
   const { isLoading: isConfirming, isSuccess: isConfirmed } =
     useWaitForTransactionReceipt({
-      hash: transferHash,
+      hash,
     });
 
   const transfer = async (
     contractAddress: `0x${string}`,
     amount: string,
-    recipientAddress: `0x${string}`
+    recipientAddress: `0x${string}`,
+    tokenDecimals?: number
   ) => {
-    if (!amount || !userAddress) return;
+    if (!amount || !address) return;
 
-    setIsEncrypting(true);
+    // Convert the amount to the correct decimal representation
+    const parsedAmount = parseUnits(amount, tokenDecimals || 6);
+
+    const result = await encryptAmount(
+      contractAddress,
+      address as `0x${string}`,
+      parsedAmount
+    );
+
     try {
-      const instance = getInstance();
-      const result = await instance
-        .createEncryptedInput(contractAddress, userAddress)
-        .add64(BigInt(amount))
-        .encrypt();
-
-      await writeContract({
+      writeContract({
         address: contractAddress,
         abi: [
           {
@@ -64,7 +65,7 @@ export const useEncryptedTransfer = ({
           toHexString(result.handles[0]) as `0x${string}`,
           toHexString(result.inputProof) as `0x${string}`,
         ],
-        account: userAddress,
+        account: address as `0x${string}`,
         chain,
       });
 
@@ -77,18 +78,19 @@ export const useEncryptedTransfer = ({
     } catch (error) {
       console.error("Transfer failed:", error);
       return false;
-    } finally {
-      setIsEncrypting(false);
     }
   };
 
   return {
     transfer,
     isEncrypting,
-    isPending,
     isConfirming,
     isConfirmed,
-    transferHash,
-    transferError,
+    hash,
+    isPending,
+    isError,
+    error,
+    isSuccess,
+    resetTransfer: reset,
   };
 };

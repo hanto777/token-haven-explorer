@@ -42,10 +42,10 @@ import {
   VITE_PAYMENT_TOKEN_CONTRACT_ADDRESS,
   VITE_AUCTION_TOKEN_CONTRACT_ADDRESS,
 } from "@/config/env";
-import { useNetwork } from "@/hooks/useNetwork";
-import { useTokens } from "@/hooks/useTokens";
+import { useTokens } from "@/hooks/token/useTokens";
 import { ArrowLeft } from "lucide-react";
 import { formatTime } from "@/lib/helper";
+import { useWallet } from "@/hooks/useWallet";
 
 const formSchema = z.object({
   startingPrice: z.string().min(1, { message: "Starting price is required" }),
@@ -59,8 +59,7 @@ const formSchema = z.object({
 });
 
 export default function DeployAuction() {
-  const { isConnected } = useAccount();
-  // const { isSepoliaChain, ensureSepolia } = useNetwork();
+  const { isConnected } = useWallet();
   const { signer } = useSigner();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);

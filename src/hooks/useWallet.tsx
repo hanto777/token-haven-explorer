@@ -1,97 +1,66 @@
+import { useEffect, useState } from "react";
+import { toast } from "@/hooks/use-toast";
+import {
+  useAppKit,
+  useAppKitAccount,
+  useAppKitNetwork,
+  useDisconnect,
+} from "@reown/appkit/react";
+import { sepolia } from "@reown/appkit/networks";
 
-import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
-import { useAccount, useConnect, useDisconnect } from 'wagmi';
-import { toast } from 'sonner';
+export function useWallet() {
+  const { open } = useAppKit();
+  const { address, isConnected } = useAppKitAccount();
+  const [displayAddress, setDisplayAddress] = useState<string>("");
+  const { disconnect } = useDisconnect();
+  const { caipNetwork, caipNetworkId, chainId, switchNetwork } =
+    useAppKitNetwork();
 
-interface WalletContextType {
-  isConnected: boolean;
-  address: string | undefined;
-  isReady: boolean;
-  openConnectModal?: () => void;
-  openAccountModal?: () => void;
-  switchAccount?: () => void;
-}
-
-const WalletContext = createContext<WalletContextType>({
-  isConnected: false,
-  address: undefined,
-  isReady: false,
-});
-
-export const WalletProvider = ({ children }: { children: ReactNode }) => {
-  const { isConnected, address } = useAccount();
-  const [isReady, setIsReady] = useState(false);
-  const { connectAsync, connectors } = useConnect();
-  const { disconnectAsync } = useDisconnect();
-  
-  // Create a function to open the connect modal
-  const openConnectModal = async () => {
-    try {
-      // Find the first available connector (usually injected like MetaMask)
-      const connector = connectors[0];
-      if (connector) {
-        await connectAsync({ connector });
-      }
-    } catch (error) {
-      console.error('Failed to connect wallet:', error);
-      toast.error('Failed to connect wallet');
-    }
-  };
-
-  // Dummy function for account modal - in real app would use Web3Modal or similar
-  const openAccountModal = async () => {
-    toast.info('Account details', {
-      description: `Connected: ${address?.slice(0, 6)}...${address?.slice(-4)}`,
-    });
-  };
-
-  // Add function to switch accounts
-  const switchAccount = async () => {
-    try {
-      // First disconnect the current account
-      await disconnectAsync();
-      
-      // Short delay to ensure disconnect completes
-      setTimeout(async () => {
-        // Then reconnect - this will usually prompt the wallet to show account selection
-        const connector = connectors[0];
-        if (connector) {
-          await connectAsync({ connector });
-          toast.success('Please select an account in your wallet');
-        }
-      }, 500);
-    } catch (error) {
-      console.error('Failed to switch accounts:', error);
-      toast.error('Failed to switch accounts');
-    }
-  };
-  
   useEffect(() => {
-    setIsReady(true);
-  }, []);
-  
-  useEffect(() => {
-    if (isConnected && address) {
-      toast.success('Wallet connected', {
-        description: `Connected to ${address.slice(0, 6)}...${address.slice(-4)}`,
+    if (address) {
+      setDisplayAddress(`${address.slice(0, 6)}...${address.slice(-4)}`);
+    } else {
+      setDisplayAddress("");
+    }
+  }, [address]);
+
+  const openConnectModal = () => {
+    try {
+      open();
+    } catch (error) {
+      console.error("Failed to open wallet connection:", error);
+      toast({
+        title: "Connection Error",
+        description: "Failed to open wallet connection",
+        variant: "destructive",
       });
     }
-  }, [isConnected, address]);
-  
-  const value = {
+  };
+
+  // TODO: Add function to switch accounts
+  const switchToSepolia = async () => {
+    try {
+      switchNetwork(sepolia);
+    } catch (error) {
+      console.error("Failed to connect to sepolia:", error);
+      toast({
+        title: "Connection Error",
+        description: "Failed to switch network to sepolia",
+        variant: "destructive",
+      });
+    }
+  };
+
+  return {
+    chainId,
     isConnected,
     address,
-    isReady,
+    displayAddress,
     openConnectModal,
-    openAccountModal,
-    switchAccount
+    switchToSepolia,
+    disconnect,
+    caipNetwork,
+    caipNetworkId,
+    switchNetwork,
   };
-  
-  return (
-    <WalletContext.Provider value={value}>
-      {children}
-    </WalletContext.Provider>
-  );
-};
-
-export const useWallet = () => useContext(WalletContext);
+}

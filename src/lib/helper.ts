@@ -36,4 +36,44 @@ const formatTime = (seconds: number, shortFormat: boolean = false): string => {
   return parts.join(shortFormat ? " " : ", ");
 };
 
-export { formatAddress, toHexString, formatTime };
+/**
+ * Formats a token balance with dynamic decimal places:
+ * - 5 decimal places when value < 1
+ * - 3 decimal places when 1 ≤ value < 1000
+ * - 2 decimal places when value ≥ 1000
+ * - 0 decimal places when value ≥ 100000
+ *
+ * @param value The token amount as bigint
+ * @param decimals The number of decimals for the token
+ */
+function formatUnits(value: bigint, decimals: number) {
+  let display = value.toString();
+
+  const negative = display.startsWith("-");
+  if (negative) display = display.slice(1);
+
+  display = display.padStart(decimals, "0");
+
+  let [integer, fraction] = [
+    display.slice(0, display.length - decimals),
+    display.slice(display.length - decimals),
+  ];
+
+  // Convert to number for comparison
+  const numValue = Number(integer + "." + fraction);
+
+  // Determine decimal places based on value
+  let decimalPlaces = 0; // default
+  if (numValue < 1) decimalPlaces = 5;
+  else if (numValue < 1000) decimalPlaces = 3;
+  else if (numValue < 100000) decimalPlaces = 2;
+
+  // Format fraction to specified decimal places and remove trailing zeros
+  fraction = fraction.slice(0, decimalPlaces).replace(/(0+)$/, "");
+
+  return `${negative ? "-" : ""}${integer || "0"}${
+    fraction ? `.${fraction}` : ""
+  }`;
+}
+
+export { formatAddress, toHexString, formatTime, formatUnits };

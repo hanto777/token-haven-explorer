@@ -8,30 +8,23 @@ import {
   UnlockKeyhole,
   Loader2,
 } from "lucide-react";
-import { Token } from "@/hooks/useTokens";
+import { Token } from "@/hooks/token/useTokens";
 import { Link } from "react-router-dom";
-import { useTokenBalance } from "@/hooks/useTokenBalance";
+import { useTokenBalance } from "@/hooks/token/useTokenBalance";
 import { useAccount } from "wagmi";
-import { useEncryptedBalance } from "@/hooks/useEncryptedBalance";
+import { useEncryptedBalance } from "@/hooks/token/useEncryptedBalance";
 import { Signer } from "ethers";
 import { useSigner } from "@/hooks/useSigner";
+import { useWallet } from "@/hooks/useWallet";
 
 interface TokenCardProps {
   token: Token;
-  decryptToken: (id: string, decryptedBalance: string) => void;
   signer: Signer;
-  loadingFhevm: boolean;
-  isSepoliaChain: boolean;
 }
 
-const TokenCard = ({
-  token,
-  decryptToken,
-  loadingFhevm,
-  isSepoliaChain,
-}: TokenCardProps) => {
+const TokenCard = ({ token }: TokenCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
-  const { address } = useAccount();
+  const { address } = useWallet();
   const { signer } = useSigner();
 
   // Use the token balance hook to get real-time balance
