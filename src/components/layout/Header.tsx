@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -64,9 +63,7 @@ const Header = () => {
             {navItems.map((item) => (
               <Link key={item.path} to={item.path}>
                 <Button
-                  variant={
-                    location.pathname === item.path ? "secondary" : "ghost"
-                  }
+                  variant={location.pathname === item.path ? "secondary" : "ghost"}
                   size="sm"
                   className="relative"
                 >
@@ -103,30 +100,29 @@ const Header = () => {
                     <span className="sr-only">Toggle menu</span>
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="w-[85vw] sm:w-[540px]">
+                <SheetContent side="top" className="h-[80vh] pt-16">
                   <SheetHeader>
-                    <SheetTitle className="text-left">Menu</SheetTitle>
+                    <SheetTitle className="text-center text-2xl">Menu</SheetTitle>
                   </SheetHeader>
-                  <div className="mt-8 flex flex-col gap-4">
+                  <div className="mt-8 flex flex-col items-center gap-6">
                     {navItems.map((item) => (
                       <Link
                         key={item.path}
                         to={item.path}
                         onClick={onNavItemClick}
+                        className="w-full max-w-xs"
                       >
                         <Button
                           variant={
-                            location.pathname === item.path
-                              ? "secondary"
-                              : "ghost"
+                            location.pathname === item.path ? "secondary" : "ghost"
                           }
-                          className="w-full justify-start text-lg"
+                          className="w-full justify-center text-lg py-6"
                         >
                           {item.name}
                         </Button>
                       </Link>
                     ))}
-                    <div className="mt-4 px-4">
+                    <div className="mt-4 w-full max-w-xs">
                       <ConnectWallet />
                     </div>
                   </div>
@@ -141,4 +137,3 @@ const Header = () => {
 };
 
 export default Header;
-
