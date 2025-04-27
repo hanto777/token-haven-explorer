@@ -1,12 +1,22 @@
+
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import ConnectWallet from "@/components/wallet/ConnectWallet";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { Menu } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 const Header = () => {
   const [scrolled, setScrolled] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
@@ -24,9 +34,13 @@ const Header = () => {
     { name: "Swap", path: "/swap" },
   ];
 
+  const onNavItemClick = () => {
+    setIsOpen(false);
+  };
+
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 px-6 py-4 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-50 px-4 md:px-6 py-4 transition-all duration-300 ${
         scrolled
           ? "bg-background/80 backdrop-blur-md shadow-sm"
           : "bg-transparent"
@@ -45,8 +59,9 @@ const Header = () => {
             </motion.div>
           </Link>
 
+          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-1">
-            {navItems.map((item, i) => (
+            {navItems.map((item) => (
               <Link key={item.path} to={item.path}>
                 <Button
                   variant={
@@ -75,7 +90,49 @@ const Header = () => {
 
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <ConnectWallet />
+            <div className="hidden md:block">
+              <ConnectWallet />
+            </div>
+
+            {/* Mobile Menu */}
+            <div className="md:hidden">
+              <Sheet open={isOpen} onOpenChange={setIsOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-9 w-9">
+                    <Menu className="h-5 w-5" />
+                    <span className="sr-only">Toggle menu</span>
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-[85vw] sm:w-[540px]">
+                  <SheetHeader>
+                    <SheetTitle className="text-left">Menu</SheetTitle>
+                  </SheetHeader>
+                  <div className="mt-8 flex flex-col gap-4">
+                    {navItems.map((item) => (
+                      <Link
+                        key={item.path}
+                        to={item.path}
+                        onClick={onNavItemClick}
+                      >
+                        <Button
+                          variant={
+                            location.pathname === item.path
+                              ? "secondary"
+                              : "ghost"
+                          }
+                          className="w-full justify-start text-lg"
+                        >
+                          {item.name}
+                        </Button>
+                      </Link>
+                    ))}
+                    <div className="mt-4 px-4">
+                      <ConnectWallet />
+                    </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </div>
           </div>
         </div>
       </div>
@@ -84,3 +141,4 @@ const Header = () => {
 };
 
 export default Header;
+
