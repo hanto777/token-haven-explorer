@@ -1,33 +1,28 @@
-import PageTransition from "@/components/layout/PageTransition";
-import TokenList from "@/components/tokens/TokenList";
-import { useWallet } from "@/hooks/useWallet";
-import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { WalletIcon, Coins, History } from "lucide-react";
-import TransactionHistory from "@/components/transactions/TransactionHistory";
-import WalletNotConnected from "@/components/wallet/WalletNotConnected";
-import TransactionHistoryCopy from "@/components/transactions/TransactionHistory copy";
+import PageTransition from '@/components/layout/PageTransition';
+import TokenList from '@/components/tokens/TokenList';
+import { useWallet } from '@/hooks/useWallet';
+import { motion } from 'framer-motion';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import WalletNotConnected from '@/components/wallet/WalletNotConnected';
+import TransactionHistory from '@/components/transactions/TransactionHistory';
 
 const Dashboard = () => {
   const { isConnected } = useWallet();
 
   return (
     <PageTransition>
-      <div className="container mx-auto px-4 pt-24 pb-16">
+      <div className="container mx-auto mt-10 px-4 pt-24 pb-16">
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
           className="mb-8 text-center"
         >
-          <h1 className="text-4xl font-semibold tracking-tight mb-3">
-            Your Token Portfolio
-          </h1>
-          <p className="text-muted-foreground text-balance max-w-xl mx-auto">
+          <h1 className="font-medium text-4xl mb-4">Your Token Portfolio</h1>
+          {/* <p className="text-muted-foreground text-md">
             View, manage, and transfer your tokens securely from a single
             dashboard.
-          </p>
+          </p> */}
         </motion.div>
 
         {isConnected ? (
@@ -55,7 +50,7 @@ const Dashboard = () => {
               </TabsContent>
 
               <TabsContent value="transactions" className="mt-0">
-                <TransactionHistoryCopy />
+                <TransactionHistory />
               </TabsContent>
             </Tabs>
           </motion.div>

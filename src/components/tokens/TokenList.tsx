@@ -1,14 +1,14 @@
-import { useTokens, Token } from "@/hooks/token/useTokens";
-import { motion, AnimatePresence } from "framer-motion";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useTokens, Token } from '@/hooks/token/useTokens';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
   TableHead,
   TableHeader,
   TableRow,
-} from "../ui/table";
-import TokenRow from "./TokenRow";
+} from '../ui/table';
+import TokenRow from './TokenRow';
 
 const TokenList = () => {
   const { tokens, isLoading } = useTokens();
@@ -58,7 +58,7 @@ const TokenList = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <div className="w-full overflow-hidden rounded-lg border bg-card">
+          <div className="w-full overflow-hidden bg-card">
             <Table>
               <TableHeader>
                 <TableRow>

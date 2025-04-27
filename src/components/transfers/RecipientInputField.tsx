@@ -17,6 +17,7 @@ const RecipientInputField = ({
     <div className="space-y-2">
       <Label htmlFor="recipient">Recipient Address</Label>
       <Input
+        name="recipient"
         id="recipient"
         placeholder="0x..."
         value={recipient}

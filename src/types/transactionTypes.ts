@@ -1,4 +1,3 @@
-
 export interface Transaction {
   id: string;
   type: 'send' | 'receive' | 'swap' | 'approve' | 'other';

@@ -4,60 +4,64 @@ import {
   useEffect,
   useState,
   ReactNode,
-} from "react";
-import { useAccount, useChainId } from "wagmi";
-import { sepolia } from "wagmi/chains";
-import { createFhevmInstance } from "@/lib/fhevm/fhevmjs";
-import { init } from "@/lib/fhevm/fhevmjs";
-import { useWallet } from "@/hooks/useWallet";
+} from 'react';
+import { createFhevmInstance, getFhevmStatus } from '@/lib/fhevm/fhevmjs';
+import { init } from '@/lib/fhevm/fhevmjs';
+import { useWallet } from '@/hooks/useWallet';
+import { FhevmStatus } from '@/lib/fhevm/fhevmjs';
 
 interface FhevmContextType {
-  loading: boolean;
-  isSepoliaChain: boolean;
   isInitialized: boolean;
+  instanceStatus: FhevmStatus;
 }
 
 export const FhevmContext = createContext<FhevmContextType | undefined>(
-  undefined
+  undefined,
 );
 
 export function FhevmProvider({ children }: { children: ReactNode }) {
-  const { isConnected } = useWallet();
-  const [loading, setLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
-  const chainId = useChainId();
-  const isSepoliaChain = chainId === sepolia.id;
+  const [instanceStatus, setInstanceStatus] =
+    useState<FhevmStatus>('uninitialized');
+  const { isConnected, isSepoliaChain } = useWallet();
+  const [loading, setLoading] = useState(true);
 
+  // Handle initial FHEVM library initialization
   useEffect(() => {
-    const initialize = async () => {
-      try {
-        await init();
-        setIsInitialized(true);
+    if (window.fhevmjsInitialized) return;
+    window.fhevmjsInitialized = true;
 
-        if (isConnected && isSepoliaChain) {
-          await createFhevmInstance();
-        }
-      } catch (error) {
-        console.error("Failed to initialize FHEVM:", error);
+    init()
+      .then(() => setIsInitialized(true))
+      .catch((e) => {
+        console.error('Failed to initialize FHEVM:', e);
         setIsInitialized(false);
-      } finally {
-        setLoading(false);
-      }
+      });
+  }, []); // Only run once on mount
+
+  // Handle instance creation/cleanup based on wallet state
+  useEffect(() => {
+    if (!isInitialized) return;
+
+    if (isConnected && isSepoliaChain) {
+      createFhevmInstance()
+        .then(() => setInstanceStatus(getFhevmStatus()))
+        .catch((error) => {
+          console.error('Failed to create FHEVM instance:', error);
+          setInstanceStatus('error');
+        });
+    }
+
+    return () => {
+      // Cleanup previous instance if necessary
+      setInstanceStatus('uninitialized');
     };
+  }, [isInitialized, isConnected, isSepoliaChain]);
 
-    initialize();
-  }, [isConnected, isSepoliaChain]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
-        <p>Loading FHEVM...</p>
-      </div>
-    );
-  }
+  // if (!isInitialized) return <div>Initializing Fhevm</div>;
 
   return (
-    <FhevmContext.Provider value={{ loading, isSepoliaChain, isInitialized }}>
+    <FhevmContext.Provider value={{ isInitialized, instanceStatus }}>
       {children}
     </FhevmContext.Provider>
   );
@@ -66,7 +70,7 @@ export function FhevmProvider({ children }: { children: ReactNode }) {
 export function useFhevm() {
   const context = useContext(FhevmContext);
   if (context === undefined) {
-    throw new Error("useFhevm must be used within a FhevmProvider");
+    throw new Error('useFhevm must be used within a FhevmProvider');
   }
   return context;
 }

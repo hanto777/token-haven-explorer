@@ -1,17 +1,17 @@
-import { useEffect, useState } from "react";
-import { toast } from "@/hooks/use-toast";
+import { useEffect, useState } from 'react';
+import { toast } from '@/hooks/use-toast';
 import {
   useAppKit,
   useAppKitAccount,
   useAppKitNetwork,
   useDisconnect,
-} from "@reown/appkit/react";
-import { sepolia } from "@reown/appkit/networks";
+} from '@reown/appkit/react';
+import { sepolia } from '@reown/appkit/networks';
 
 export function useWallet() {
   const { open } = useAppKit();
   const { address, isConnected } = useAppKitAccount();
-  const [displayAddress, setDisplayAddress] = useState<string>("");
+  const [displayAddress, setDisplayAddress] = useState<string>('');
   const { disconnect } = useDisconnect();
   const { caipNetwork, caipNetworkId, chainId, switchNetwork } =
     useAppKitNetwork();
@@ -20,19 +20,21 @@ export function useWallet() {
     if (address) {
       setDisplayAddress(`${address.slice(0, 6)}...${address.slice(-4)}`);
     } else {
-      setDisplayAddress("");
+      setDisplayAddress('');
     }
   }, [address]);
+
+  const isSepoliaChain = chainId === sepolia.id;
 
   const openConnectModal = () => {
     try {
       open();
     } catch (error) {
-      console.error("Failed to open wallet connection:", error);
+      console.error('Failed to open wallet connection:', error);
       toast({
-        title: "Connection Error",
-        description: "Failed to open wallet connection",
-        variant: "destructive",
+        title: 'Connection Error',
+        description: 'Failed to open wallet connection',
+        variant: 'destructive',
       });
     }
   };
@@ -42,11 +44,11 @@ export function useWallet() {
     try {
       switchNetwork(sepolia);
     } catch (error) {
-      console.error("Failed to connect to sepolia:", error);
+      console.error('Failed to connect to sepolia:', error);
       toast({
-        title: "Connection Error",
-        description: "Failed to switch network to sepolia",
-        variant: "destructive",
+        title: 'Connection Error',
+        description: 'Failed to switch network to sepolia',
+        variant: 'destructive',
       });
     }
   };
@@ -54,6 +56,7 @@ export function useWallet() {
   return {
     chainId,
     isConnected,
+    isSepoliaChain,
     address,
     displayAddress,
     openConnectModal,

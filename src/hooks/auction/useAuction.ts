@@ -1,11 +1,11 @@
-import { auctionAbi } from "@/utils/auctionAbi";
-import { useReadContract } from "wagmi";
+import { auctionAbi } from '@/utils/auctionAbi';
+import { useReadContract } from 'wagmi';
 
 export const useAuctionCurrentPrice = (address: string) => {
   const { data, refetch } = useReadContract({
     abi: auctionAbi,
     address: address as `0x${string}`,
-    functionName: "getPrice",
+    functionName: 'getPrice',
   });
   return { currentPrice: Number(data) || 0, refreshCurrentPrice: refetch };
 };
@@ -14,7 +14,7 @@ export const useAuctionTokensLeft = (address: string) => {
   const { data, refetch } = useReadContract({
     abi: auctionAbi,
     address: address as `0x${string}`,
-    functionName: "tokensLeftReveal",
+    functionName: 'tokensLeftReveal',
   });
   return { tokensLeft: Number(data) || 0, refreshTokensLeft: refetch };
 };
@@ -23,49 +23,49 @@ export const useAuctionDetails = (address: string) => {
   const { data: startPrice } = useReadContract({
     abi: auctionAbi,
     address: address as `0x${string}`,
-    functionName: "startingPrice",
+    functionName: 'startingPrice',
   });
 
   const { data: discountRate } = useReadContract({
     abi: auctionAbi,
     address: address as `0x${string}`,
-    functionName: "discountRate",
+    functionName: 'discountRate',
   });
 
   const { data: startAt } = useReadContract({
     abi: auctionAbi,
     address: address as `0x${string}`,
-    functionName: "startAt",
+    functionName: 'startAt',
   });
 
   const { data: seller } = useReadContract({
     abi: auctionAbi,
     address: address as `0x${string}`,
-    functionName: "seller",
+    functionName: 'seller',
   });
 
   const { data: expiresAt } = useReadContract({
     abi: auctionAbi,
     address: address as `0x${string}`,
-    functionName: "expiresAt",
+    functionName: 'expiresAt',
   });
 
   const { data: reservePrice } = useReadContract({
     abi: auctionAbi,
     address: address as `0x${string}`,
-    functionName: "reservePrice",
+    functionName: 'reservePrice',
   });
 
   const { data: initialTokenSupply } = useReadContract({
     abi: auctionAbi,
     address: address as `0x${string}`,
-    functionName: "amount",
+    functionName: 'amount',
   });
 
   const { data: hasAuctionStarted } = useReadContract({
     abi: auctionAbi,
     address: address as `0x${string}`,
-    functionName: "auctionStart",
+    functionName: 'auctionStart',
   });
 
   return {

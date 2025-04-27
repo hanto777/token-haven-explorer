@@ -1,10 +1,10 @@
-import { useState, useEffect, useMemo } from "react";
-import { readContract } from "wagmi/actions";
-import { factoryAuctionAbi } from "@/utils/factoryAuctionAbi";
-import { VITE_AUCTION_FACTORY_CONTRACT_ADDRESS } from "@/config/env";
-import { auctionAbi } from "@/utils/auctionAbi";
-import { useWallet } from "../useWallet";
-import { wagmiAdapter } from "@/config";
+import { useState, useEffect, useMemo } from 'react';
+import { readContract } from 'wagmi/actions';
+import { factoryAuctionAbi } from '@/utils/factoryAuctionAbi';
+import { VITE_AUCTION_FACTORY_CONTRACT_ADDRESS } from '@/config/env';
+import { auctionAbi } from '@/utils/auctionAbi';
+import { useWallet } from '../useWallet';
+import { wagmiAdapter } from '@/config';
 
 export interface AuctionSummary {
   address: `0x${string}`;
@@ -35,7 +35,7 @@ export function useAllAuctions() {
         const result = await readContract(wagmiAdapter.wagmiConfig, {
           address: VITE_AUCTION_FACTORY_CONTRACT_ADDRESS as `0x${string}`,
           abi: factoryAuctionAbi,
-          functionName: "getAllAuctions",
+          functionName: 'getAllAuctions',
         });
 
         if (result && Array.isArray(result)) {
@@ -48,8 +48,8 @@ export function useAllAuctions() {
               address: auctionAddress,
               hasAuctionStarted: false,
               expiresAt: 0,
-              seller: "",
-            })
+              seller: '',
+            }),
           );
 
           // Set the initial data first to prevent the map error
@@ -64,8 +64,8 @@ export function useAllAuctions() {
                   {
                     address: auctionAddress,
                     abi: auctionAbi,
-                    functionName: "auctionStart",
-                  }
+                    functionName: 'auctionStart',
+                  },
                 );
 
                 const expiresAtResult = await readContract(
@@ -73,8 +73,8 @@ export function useAllAuctions() {
                   {
                     address: auctionAddress,
                     abi: auctionAbi,
-                    functionName: "expiresAt",
-                  }
+                    functionName: 'expiresAt',
+                  },
                 );
 
                 const sellerResult = await readContract(
@@ -82,8 +82,8 @@ export function useAllAuctions() {
                   {
                     address: auctionAddress,
                     abi: auctionAbi,
-                    functionName: "seller",
-                  }
+                    functionName: 'seller',
+                  },
                 );
 
                 return {
@@ -95,35 +95,35 @@ export function useAllAuctions() {
               } catch (err) {
                 console.error(
                   `Error fetching details for auction ${auctionAddress}:`,
-                  err
+                  err,
                 );
                 return {
                   address: auctionAddress,
                   hasAuctionStarted: false,
                   expiresAt: 0,
-                  seller: "",
+                  seller: '',
                 };
               }
-            }
+            },
           );
 
           try {
             const auctionsWithDetails = await Promise.all(
-              auctionDetailsPromises
+              auctionDetailsPromises,
             );
             console.log(auctionsWithDetails);
             setAuctions(auctionsWithDetails);
           } catch (err) {
-            console.error("Error fetching auction details:", err);
+            console.error('Error fetching auction details:', err);
             // We already set initial auction data above, so we don't need to set again
           }
         } else {
           setAuctions([]);
         }
       } catch (err) {
-        console.error("Error fetching auctions:", err);
+        console.error('Error fetching auctions:', err);
         setError(
-          err instanceof Error ? err : new Error("Failed to fetch auctions")
+          err instanceof Error ? err : new Error('Failed to fetch auctions'),
         );
         // Make sure auctions is at least an empty array to prevent map errors
         setAuctions([]);
@@ -143,7 +143,7 @@ export function useAllAuctions() {
       (auction) =>
         auction.hasAuctionStarted &&
         auction.expiresAt &&
-        auction.expiresAt > now
+        auction.expiresAt > now,
     );
   }, [auctions]);
 
@@ -155,7 +155,7 @@ export function useAllAuctions() {
       (auction) =>
         auction.hasAuctionStarted &&
         auction.expiresAt &&
-        auction.expiresAt <= now
+        auction.expiresAt <= now,
     );
   }, [auctions]);
 
@@ -163,7 +163,7 @@ export function useAllAuctions() {
   const myAuctions = useMemo(() => {
     if (!auctions || !auctions.length || !address) return [];
     return auctions.filter(
-      (auction) => auction.seller?.toLowerCase() === address.toLowerCase()
+      (auction) => auction.seller?.toLowerCase() === address.toLowerCase(),
     );
   }, [auctions, address]);
 

@@ -1,20 +1,20 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAccount, usePublicClient } from "wagmi";
-import { parseUnits } from "ethers";
-import { toast } from "sonner";
-import { Contract } from "ethers";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAccount, usePublicClient } from 'wagmi';
+import { parseUnits } from 'ethers';
+import { toast } from 'sonner';
+import { Contract } from 'ethers';
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 import {
   Card,
   CardContent,
@@ -22,7 +22,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from '@/components/ui/card';
 import {
   Form,
   FormControl,
@@ -31,30 +31,30 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { useSigner } from "@/hooks/useSigner";
-import { factoryAuctionAbi } from "@/utils/factoryAuctionAbi";
+} from '@/components/ui/form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
+import { useSigner } from '@/hooks/useSigner';
+import { factoryAuctionAbi } from '@/utils/factoryAuctionAbi';
 import {
   VITE_AUCTION_FACTORY_CONTRACT_ADDRESS,
   VITE_PAYMENT_TOKEN_CONTRACT_ADDRESS,
   VITE_AUCTION_TOKEN_CONTRACT_ADDRESS,
-} from "@/config/env";
-import { useTokens } from "@/hooks/token/useTokens";
-import { ArrowLeft } from "lucide-react";
-import { formatTime } from "@/lib/helper";
-import { useWallet } from "@/hooks/useWallet";
+} from '@/config/env';
+import { useTokens } from '@/hooks/token/useTokens';
+import { ArrowLeft } from 'lucide-react';
+import { formatTime } from '@/lib/helper';
+import { useWallet } from '@/hooks/useWallet';
 
 const formSchema = z.object({
-  startingPrice: z.string().min(1, { message: "Starting price is required" }),
-  discountRate: z.string().min(1, { message: "Discount rate is required" }),
-  token: z.string().min(1, { message: "Token is required" }),
-  paymentToken: z.string().min(1, { message: "Payment token is required" }),
-  amount: z.string().min(1, { message: "Amount is required" }),
-  reservePrice: z.string().min(1, { message: "Reserve price is required" }),
-  biddingTime: z.string().min(1, { message: "Bidding time is required" }),
+  startingPrice: z.string().min(1, { message: 'Starting price is required' }),
+  discountRate: z.string().min(1, { message: 'Discount rate is required' }),
+  token: z.string().min(1, { message: 'Token is required' }),
+  paymentToken: z.string().min(1, { message: 'Payment token is required' }),
+  amount: z.string().min(1, { message: 'Amount is required' }),
+  reservePrice: z.string().min(1, { message: 'Reserve price is required' }),
+  biddingTime: z.string().min(1, { message: 'Bidding time is required' }),
   isStoppable: z.boolean().default(true),
 });
 
@@ -70,20 +70,20 @@ export default function DeployAuction() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      startingPrice: "10",
-      discountRate: "1",
+      startingPrice: '10',
+      discountRate: '1',
       token: VITE_AUCTION_TOKEN_CONTRACT_ADDRESS,
       paymentToken: VITE_PAYMENT_TOKEN_CONTRACT_ADDRESS,
-      amount: "1000",
-      reservePrice: "1",
-      biddingTime: "604800", // 1 hour in seconds
+      amount: '1000',
+      reservePrice: '1',
+      biddingTime: '604800', // 1 hour in seconds
       isStoppable: true,
     },
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (!signer) {
-      toast.error("Wallet not connected");
+      toast.error('Wallet not connected');
       return;
     }
 
@@ -120,14 +120,15 @@ export default function DeployAuction() {
         values.isStoppable
       );
 
-      toast.loading("Creating auction...");
+      toast.loading('Creating auction...');
 
       // Wait for the transaction to be mined
       const receipt = await tx.wait();
 
       // Get the auction address from the event
       const auctionCreatedEvent = receipt.logs.find(
-        (log: any) => log.fragment?.name === "AuctionCreated"
+        (log: { fragment?: { name: string } }) =>
+          log.fragment?.name === 'AuctionCreated'
       );
 
       let auctionAddress;
@@ -136,12 +137,12 @@ export default function DeployAuction() {
       }
 
       toast.dismiss();
-      toast.success("Auction created successfully!");
+      toast.success('Auction created successfully!');
 
-      navigate("/auction");
+      navigate('/auction');
     } catch (error) {
-      console.error("Error creating auction:", error);
-      toast.error("Failed to create auction. See console for details.");
+      console.error('Error creating auction:', error);
+      toast.error('Failed to create auction. See console for details.');
     } finally {
       setIsSubmitting(false);
     }
@@ -167,7 +168,7 @@ export default function DeployAuction() {
       <Button
         variant="ghost"
         className="mb-4"
-        onClick={() => navigate("/auction")}
+        onClick={() => navigate('/auction')}
       >
         <ArrowLeft className="mr-2 h-4 w-4" /> Back to Auctions
       </Button>
@@ -238,7 +239,7 @@ export default function DeployAuction() {
                             .map((token) => (
                               <SelectItem
                                 key={token.address}
-                                value={token.address || ""}
+                                value={token.address || ''}
                               >
                                 {token.name} ({token.symbol})
                               </SelectItem>
@@ -274,7 +275,7 @@ export default function DeployAuction() {
                             .map((token) => (
                               <SelectItem
                                 key={token.address}
-                                value={token.address || ""}
+                                value={token.address || ''}
                               >
                                 {token.name} ({token.symbol})
                               </SelectItem>
@@ -375,7 +376,7 @@ export default function DeployAuction() {
                   className="w-full"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? "Creating Auction..." : "Deploy Auction"}
+                  {isSubmitting ? 'Creating Auction...' : 'Deploy Auction'}
                 </Button>
               </CardFooter>
             </form>

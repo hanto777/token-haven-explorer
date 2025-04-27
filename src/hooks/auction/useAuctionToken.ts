@@ -1,12 +1,12 @@
-import TokenContext from "@/providers/TokenContext";
-import { useContext, useEffect, useState } from "react";
-import { readContract } from "@wagmi/core";
-import { confidentialErc20Abi } from "@/utils/confidentialErc20Abi";
-import { wagmiAdapter } from "@/config";
+import TokenContext from '@/providers/TokenContext';
+import { useContext, useEffect, useState } from 'react';
+import { readContract } from '@wagmi/core';
+import { confidentialErc20Abi } from '@/utils/confidentialErc20Abi';
+import { wagmiAdapter } from '@/config';
 
 export const useAuctionToken = () => {
   const context = useContext(TokenContext);
-  const [tokenName, setTokenName] = useState<string>("~");
+  const [tokenName, setTokenName] = useState<string>('~');
   const [totalTokenSupply, setTotTokenalSupply] = useState<number>(0);
 
   useEffect(() => {
@@ -17,21 +17,21 @@ export const useAuctionToken = () => {
         readContract(wagmiAdapter.wagmiConfig, {
           address: address as `0x${string}`,
           abi: confidentialErc20Abi,
-          functionName: "symbol",
+          functionName: 'symbol',
         }),
         readContract(wagmiAdapter.wagmiConfig, {
           address: address as `0x${string}`,
           abi: confidentialErc20Abi,
-          functionName: "totalSupply",
+          functionName: 'totalSupply',
         }),
       ]);
-      if (typeof contractSymbol === "string") setTokenName(contractSymbol);
-      if (typeof totalSupply === "bigint")
+      if (typeof contractSymbol === 'string') setTokenName(contractSymbol);
+      if (typeof totalSupply === 'bigint')
         setTotTokenalSupply(Number(totalSupply));
     }
     if (!context.tokens) return;
     const auctionToken = context.tokens.find(
-      ({ isAuctionToken }) => !!isAuctionToken
+      ({ isAuctionToken }) => !!isAuctionToken,
     );
     if (!auctionToken) return;
     populate();

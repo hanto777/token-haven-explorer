@@ -1,9 +1,9 @@
-import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
-import { toast } from "sonner";
-import { useWallet } from "../../useWallet";
-import { erc20Abi } from "@/utils/erc20Abi";
-import { parseUnits } from "viem";
-import { useChain } from "../../useChain";
+import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { toast } from 'sonner';
+import { useWallet } from '../../useWallet';
+import { erc20Abi } from '@/utils/erc20Abi';
+import { parseUnits } from 'viem';
+import { useChain } from '../../useChain';
 
 interface UseTokenTransferProps {
   onSuccess?: () => void;
@@ -31,7 +31,7 @@ export const useTokenTransfer = ({ onSuccess }: UseTokenTransferProps = {}) => {
     contractAddress: `0x${string}`,
     amount: string,
     recipientAddress: `0x${string}`,
-    tokenDecimals?: number
+    tokenDecimals?: number,
   ) => {
     if (!amount || !address) return;
 
@@ -42,23 +42,23 @@ export const useTokenTransfer = ({ onSuccess }: UseTokenTransferProps = {}) => {
       writeContract({
         address: contractAddress,
         abi: erc20Abi,
-        functionName: "transfer",
+        functionName: 'transfer',
         args: [recipientAddress, parsedAmount],
         account: address as `0x${string}`,
         chain: chain,
       });
 
-      toast.info("Confidential Transfer Initiated", {
+      toast.info('Confidential Transfer Initiated', {
         description:
-          "Processing encrypted transaction. This may take longer than regular transfers.",
+          'Processing encrypted transaction. This may take longer than regular transfers.',
       });
 
       return true;
     } catch (error) {
-      console.error("Transfer error:", error);
-      toast.error("Transfer failed", {
+      console.error('Transfer error:', error);
+      toast.error('Transfer failed', {
         description:
-          error instanceof Error ? error.message : "Unknown error occurred",
+          error instanceof Error ? error.message : 'Unknown error occurred',
       });
       return false;
     }

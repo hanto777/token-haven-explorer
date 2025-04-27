@@ -1,12 +1,12 @@
-import { useEffect, useState } from "react";
-import { useBalance, useReadContract, useChainId } from "wagmi";
+import { useEffect, useState } from 'react';
+import { useBalance, useReadContract, useChainId } from 'wagmi';
 // import { formatUnits } from "viem";
-import { mainnet, sepolia, polygon } from "wagmi/chains";
-import { formatUnits } from "@/lib/helper";
-import { erc20Abi } from "@/utils/erc20Abi";
-import { useSigner } from "../useSigner";
-import { useEncryptedBalance } from "./useEncryptedBalance";
-import { Signer } from "ethers";
+import { mainnet, sepolia, polygon } from 'wagmi/chains';
+import { formatUnits } from '@/lib/helper';
+import { erc20Abi } from '@/utils/erc20Abi';
+import { useSigner } from '../useSigner';
+import { useEncryptedBalance } from './useEncryptedBalance';
+import { Signer } from 'ethers';
 
 interface UseTokenBalanceProps {
   address?: string;
@@ -22,15 +22,15 @@ export function useTokenBalance({
   enabled = true,
 }: UseTokenBalanceProps) {
   const chainId = useChainId();
-  const [balance, setBalance] = useState("0");
+  const [balance, setBalance] = useState('0');
   const [rawBalance, setRawBalance] = useState<bigint>(BigInt(0));
   const [value, setValue] = useState<string | number>(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const [tokenSymbol, setTokenSymbol] = useState<string>("");
+  const [tokenSymbol, setTokenSymbol] = useState<string>('');
   const [tokenDecimals, setTokenDecimals] = useState<number>(18);
 
-  const isNativeToken = tokenAddress === "native";
+  const isNativeToken = tokenAddress === 'native';
   const { signer } = useSigner();
 
   const {
@@ -47,7 +47,7 @@ export function useTokenBalance({
   const tokenSymbolData = useReadContract({
     address: isNativeToken ? undefined : (tokenAddress as `0x${string}`),
     abi: erc20Abi,
-    functionName: "symbol",
+    functionName: 'symbol',
     query: {
       enabled: enabled && !isNativeToken && !!tokenAddress,
     },
@@ -56,7 +56,7 @@ export function useTokenBalance({
   const tokenDecimalsData = useReadContract({
     address: isNativeToken ? undefined : (tokenAddress as `0x${string}`),
     abi: erc20Abi,
-    functionName: "decimals",
+    functionName: 'decimals',
     query: {
       enabled: enabled && !isNativeToken && !!tokenAddress,
     },
@@ -74,7 +74,7 @@ export function useTokenBalance({
   const tokenBalanceData = useReadContract({
     address: isNativeToken ? undefined : (tokenAddress as `0x${string}`),
     abi: erc20Abi,
-    functionName: "balanceOf",
+    functionName: 'balanceOf',
     args: address ? [address as `0x${string}`] : undefined,
     query: {
       enabled: enabled && !!address && !isNativeToken && !!tokenAddress,
@@ -95,7 +95,7 @@ export function useTokenBalance({
       if (nativeBalanceData.data && !nativeBalanceData.isLoading) {
         const formattedBalance = formatUnits(
           nativeBalanceData.data.value,
-          nativeBalanceData.data.decimals
+          nativeBalanceData.data.decimals,
         );
         setBalance(formattedBalance);
         setRawBalance(nativeBalanceData.data.value);
@@ -115,7 +115,7 @@ export function useTokenBalance({
       setIsLoading(
         tokenBalanceData.isLoading ||
           tokenSymbolData.isLoading ||
-          tokenDecimalsData.isLoading
+          tokenDecimalsData.isLoading,
       );
 
       if (tokenBalanceData.error) {
@@ -149,15 +149,15 @@ export function useTokenBalance({
 
         // Mock price calculation based on token symbol
         const mockPrice =
-          tokenSymbol === "LINK"
+          tokenSymbol === 'LINK'
             ? 11.5
-            : tokenSymbol === "MATIC"
-            ? 1.1
-            : tokenSymbol === "WETH"
-            ? 1940
-            : tokenSymbol === "UNI"
-            ? 9.8
-            : 5;
+            : tokenSymbol === 'MATIC'
+              ? 1.1
+              : tokenSymbol === 'WETH'
+                ? 1940
+                : tokenSymbol === 'UNI'
+                  ? 9.8
+                  : 5;
 
         setValue(parseFloat(formattedBalance) * mockPrice);
       }
@@ -171,22 +171,22 @@ export function useTokenBalance({
           setBalance(formattedBalance);
           // Mock price calculation based on token symbol
           const mockPrice =
-            tokenSymbol === "LINK"
+            tokenSymbol === 'LINK'
               ? 11.5
-              : tokenSymbol === "MATIC"
-              ? 1.1
-              : tokenSymbol === "WETH"
-              ? 1940
-              : tokenSymbol === "WETHc"
-              ? 1940
-              : tokenSymbol === "UNI"
-              ? 9.8
-              : 5;
+              : tokenSymbol === 'MATIC'
+                ? 1.1
+                : tokenSymbol === 'WETH'
+                  ? 1940
+                  : tokenSymbol === 'WETHc'
+                    ? 1940
+                    : tokenSymbol === 'UNI'
+                      ? 9.8
+                      : 5;
 
           setValue(parseFloat(formattedBalance) * mockPrice);
         } else {
-          setBalance("•••••••");
-          setValue("•••••••");
+          setBalance('•••••••');
+          setValue('•••••••');
         }
       }
     }
@@ -213,16 +213,16 @@ export function useTokenBalance({
 
   // Get the appropriate native token symbol based on the chain
   const getNativeSymbol = () => {
-    if (chainId === polygon.id) return "MATIC";
-    return "ETH"; // Default for Ethereum networks (mainnet, sepolia, etc.)
+    if (chainId === polygon.id) return 'MATIC';
+    return 'ETH'; // Default for Ethereum networks (mainnet, sepolia, etc.)
   };
 
   // Get the appropriate native token name based on the chain
   const getNativeName = () => {
-    if (chainId === mainnet.id) return "Ethereum";
-    if (chainId === sepolia.id) return "Sepolia ETH";
-    if (chainId === polygon.id) return "Polygon";
-    return "Ethereum"; // Default
+    if (chainId === mainnet.id) return 'Ethereum';
+    if (chainId === sepolia.id) return 'Sepolia ETH';
+    if (chainId === polygon.id) return 'Polygon';
+    return 'Ethereum'; // Default
   };
 
   const decrypt = async () => {

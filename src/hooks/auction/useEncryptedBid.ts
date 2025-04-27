@@ -1,12 +1,12 @@
-import { useState } from "react";
-import { getInstance } from "@/lib/fhevm/fhevmjs";
-import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
-import { toHexString } from "@/lib/helper";
-import { toast } from "sonner";
-import { Chain } from "wagmi/chains";
-import { VITE_PAYMENT_TOKEN_CONTRACT_ADDRESS } from "@/config/env";
-import { auctionAbi } from "@/utils/auctionAbi";
-import { confidentialErc20Abi } from "@/utils/confidentialErc20Abi";
+import { useState } from 'react';
+import { getInstance } from '@/lib/fhevm/fhevmjs';
+import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { toHexString } from '@/lib/helper';
+import { toast } from 'sonner';
+import { Chain } from 'wagmi/chains';
+import { VITE_PAYMENT_TOKEN_CONTRACT_ADDRESS } from '@/config/env';
+import { auctionAbi } from '@/utils/auctionAbi';
+import { confidentialErc20Abi } from '@/utils/confidentialErc20Abi';
 
 const ptContractAddress = VITE_PAYMENT_TOKEN_CONTRACT_ADDRESS;
 
@@ -44,7 +44,7 @@ export const useEncryptedBid = ({
 
       const resultPt = await instance
         .createEncryptedInput(ptContractAddress, userAddress)
-        .add64(BigInt("100"))
+        .add64(BigInt('100'))
         .encrypt();
 
       const resultBid = await instance
@@ -56,7 +56,7 @@ export const useEncryptedBid = ({
       await writeContract({
         address: ptContractAddress,
         abi: confidentialErc20Abi,
-        functionName: "approve",
+        functionName: 'approve',
         args: [
           contractAddress, // spender
           toHexString(resultPt.handles[0]) as `0x${string}`, // encryptedAmount
@@ -70,7 +70,7 @@ export const useEncryptedBid = ({
       await writeContract({
         address: contractAddress,
         abi: auctionAbi,
-        functionName: "bid",
+        functionName: 'bid',
         args: [
           toHexString(resultBid.handles[0]) as `0x${string}`,
           toHexString(resultBid.inputProof) as `0x${string}`,
@@ -79,14 +79,14 @@ export const useEncryptedBid = ({
         chain,
       });
 
-      toast.info("Confidential Transfer Initiated", {
+      toast.info('Confidential Transfer Initiated', {
         description:
-          "Processing encrypted transaction. This may take longer than regular transfers.",
+          'Processing encrypted transaction. This may take longer than regular transfers.',
       });
 
       return true;
     } catch (error) {
-      console.error("Transfer failed:", error);
+      console.error('Transfer failed:', error);
       return false;
     } finally {
       setIsEncrypting(false);

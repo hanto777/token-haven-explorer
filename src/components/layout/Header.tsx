@@ -1,17 +1,17 @@
-import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
-import ConnectWallet from "@/components/wallet/ConnectWallet";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { Menu } from "lucide-react";
+import { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { motion } from 'framer-motion';
+import ConnectWallet from '@/components/wallet/ConnectWallet';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { Menu } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@/components/ui/sheet";
+} from '@/components/ui/sheet';
 
 const Header = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -23,14 +23,14 @@ const Header = () => {
       setScrolled(window.scrollY > 10);
     };
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const navItems = [
-    { name: "Dashboard", path: "/" },
-    { name: "Transfer", path: "/transfer" },
-    { name: "Swap", path: "/swap" },
+    { name: 'Dashboard', path: '/' },
+    { name: 'Transfer', path: '/transfer' },
+    { name: 'Swap', path: '/swap' },
   ];
 
   const onNavItemClick = () => {
@@ -39,22 +39,22 @@ const Header = () => {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 px-4 md:px-6 py-4 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-50 px-0 md:px-6 py-4 transition-all duration-300 ${
         scrolled
-          ? "bg-background/80 backdrop-blur-md shadow-sm"
-          : "bg-transparent"
+          ? 'bg-background/80 backdrop-blur-md shadow-sm'
+          : 'bg-transparent'
       }`}
     >
-      <div className="container mx-auto font-telegraf">
+      <div className="px-5 md:px-20 mx-auto font-telegraf">
         <div className="flex items-center justify-between">
-          <Link to="/" className="flex items-center space-x-2">
+          <Link to="/" className="flex mr-5 md:mr-24 items-center space-x-2">
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.3 }}
-              className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center"
+              className="w-10 h-10 bg-primary flex items-center justify-center"
             >
-              <span className="text-primary-foreground font-semibold">Z</span>
+              <img src="/assets/zama-logo.png" alt="Zama" className="w-6 h-6" />
             </motion.div>
           </Link>
 
@@ -63,17 +63,19 @@ const Header = () => {
             {navItems.map((item) => (
               <Link key={item.path} to={item.path}>
                 <Button
-                  variant={location.pathname === item.path ? "secondary" : "ghost"}
+                  variant={
+                    location.pathname === item.path ? 'secondary' : 'ghost'
+                  }
                   size="sm"
-                  className="relative"
+                  className="relative hover:bg-slate-500"
                 >
                   {location.pathname === item.path && (
                     <motion.div
                       layoutId="activeTab"
-                      className="absolute inset-0 bg-secondary rounded-md"
+                      className="absolute inset-0 bg-secondary"
                       transition={{
                         duration: 0.2,
-                        type: "spring",
+                        type: 'spring',
                         stiffness: 300,
                         damping: 30,
                       }}
@@ -86,10 +88,8 @@ const Header = () => {
           </nav>
 
           <div className="flex items-center gap-2">
+            <ConnectWallet />
             <ThemeToggle />
-            <div className="hidden md:block">
-              <ConnectWallet />
-            </div>
 
             {/* Mobile Menu */}
             <div className="md:hidden">
@@ -100,11 +100,8 @@ const Header = () => {
                     <span className="sr-only">Toggle menu</span>
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="top" className="h-[80vh] pt-16">
-                  <SheetHeader>
-                    <SheetTitle className="text-center text-2xl">Menu</SheetTitle>
-                  </SheetHeader>
-                  <div className="mt-8 flex flex-col items-center gap-6">
+                <SheetContent side="top" className="h-[40vh] pt-16">
+                  <div className="mt-4 flex flex-col items-center gap-2">
                     {navItems.map((item) => (
                       <Link
                         key={item.path}
@@ -114,17 +111,19 @@ const Header = () => {
                       >
                         <Button
                           variant={
-                            location.pathname === item.path ? "secondary" : "ghost"
+                            location.pathname === item.path
+                              ? 'secondary'
+                              : 'ghost'
                           }
-                          className="w-full justify-center text-lg py-6"
+                          className="w-full justify-left font-telegraf text-lg text-left py-6 hover:bg-gray-300"
                         >
                           {item.name}
                         </Button>
                       </Link>
                     ))}
-                    <div className="mt-4 w-full max-w-xs">
+                    {/* <div className="mt-4 flex justify-center w-full max-w-xs">
                       <ConnectWallet />
-                    </div>
+                    </div> */}
                   </div>
                 </SheetContent>
               </Sheet>

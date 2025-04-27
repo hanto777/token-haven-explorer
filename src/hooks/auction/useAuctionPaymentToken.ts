@@ -1,12 +1,12 @@
-import TokenContext from "@/providers/TokenContext";
-import { useContext, useEffect, useState } from "react";
-import { readContract } from "@wagmi/core";
-import { confidentialErc20Abi } from "@/utils/confidentialErc20Abi";
-import { wagmiAdapter } from "@/config";
+import TokenContext from '@/providers/TokenContext';
+import { useContext, useEffect, useState } from 'react';
+import { readContract } from '@wagmi/core';
+import { confidentialErc20Abi } from '@/utils/confidentialErc20Abi';
+import { wagmiAdapter } from '@/config';
 
 export const useAuctionPaymentToken = () => {
   const context = useContext(TokenContext);
-  const [paymentTokenSymbol, setPaymentTokenSymbol] = useState<string>("~");
+  const [paymentTokenSymbol, setPaymentTokenSymbol] = useState<string>('~');
 
   useEffect(() => {
     async function populate() {
@@ -15,14 +15,14 @@ export const useAuctionPaymentToken = () => {
       const contractSymbol = await readContract(wagmiAdapter.wagmiConfig, {
         address: address as `0x${string}`,
         abi: confidentialErc20Abi,
-        functionName: "symbol",
+        functionName: 'symbol',
       });
-      if (typeof contractSymbol === "string")
+      if (typeof contractSymbol === 'string')
         setPaymentTokenSymbol(contractSymbol);
     }
     if (!context.tokens) return;
     const auctionToken = context.tokens.find(
-      ({ isAuctionPaymentToken }) => !!isAuctionPaymentToken
+      ({ isAuctionPaymentToken }) => !!isAuctionPaymentToken,
     );
     if (!auctionToken) return;
     populate();

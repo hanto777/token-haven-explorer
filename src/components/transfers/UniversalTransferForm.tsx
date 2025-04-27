@@ -1,29 +1,29 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { useTokens } from "@/hooks/token/useTokens";
-import { useTokenBalance } from "@/hooks/token/useTokenBalance";
-import { useAccount, useChainId } from "wagmi";
-import { Card, CardContent } from "@/components/ui/card";
-import { motion, AnimatePresence } from "framer-motion";
-import TransactionStatus from "./TransactionStatus";
-import TransferFormError from "./TransferFormError";
-import TokenSelectField from "./TokenSelectField";
-import RecipientInputField from "./RecipientInputField";
-import AmountInputField from "./AmountInputField";
-import TransferButton from "./TransferButton";
-import TransferSuccessMessage from "./TransferSuccessMessage";
-import { type BaseError } from "wagmi";
-import { useWallet } from "@/hooks/useWallet";
-import { getNativeToken } from "@/utils/tokenUtils";
-import { useNativeTransfer } from "@/hooks/token/transfer/useNativeTransfer";
-import { useTokenTransfer } from "@/hooks/token/transfer/useTokenTransfer";
-import { useConfidentialTransfer } from "@/hooks/token/transfer/useConfidentialTransfer";
-import { Token } from "@/types/tokenTypes";
-import { useSigner } from "@/hooks/useSigner";
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useTokens } from '@/hooks/token/useTokens';
+import { useTokenBalance } from '@/hooks/token/useTokenBalance';
+import { useChainId } from 'wagmi';
+import { Card, CardContent } from '@/components/ui/card';
+import { motion, AnimatePresence } from 'framer-motion';
+import TransactionStatus from './TransactionStatus';
+import TransferFormError from './TransferFormError';
+import TokenSelectField from './TokenSelectField';
+import RecipientInputField from './RecipientInputField';
+import AmountInputField from './AmountInputField';
+import TransferButton from './TransferButton';
+import TransferSuccessMessage from './TransferSuccessMessage';
+import { type BaseError } from 'wagmi';
+import { useWallet } from '@/hooks/useWallet';
+import { getNativeToken } from '@/utils/tokenUtils';
+import { useNativeTransfer } from '@/hooks/token/transfer/useNativeTransfer';
+import { useTokenTransfer } from '@/hooks/token/transfer/useTokenTransfer';
+import { useConfidentialTransfer } from '@/hooks/token/transfer/useConfidentialTransfer';
+import { Token } from '@/types/tokenTypes';
+import { useSigner } from '@/hooks/useSigner';
 
 const UniversalTransferForm = () => {
   const [searchParams] = useSearchParams();
-  const initialTokenId = searchParams.get("token");
+  const initialTokenId = searchParams.get('token');
   const { tokens } = useTokens();
   const { address } = useWallet();
   const { signer } = useSigner();
@@ -31,11 +31,11 @@ const UniversalTransferForm = () => {
   const chainId = useChainId();
   const navigate = useNavigate();
 
-  const [selectedTokenId, setSelectedTokenId] = useState<string>("");
-  const [recipient, setRecipient] = useState<string>("");
-  const [amount, setAmount] = useState<string>("");
+  const [selectedTokenId, setSelectedTokenId] = useState<string>('');
+  const [recipient, setRecipient] = useState<string>('');
+  const [amount, setAmount] = useState<string>('');
   const [selectedToken, setSelectedToken] = useState<Token | null>(null);
-  const [formError, setFormError] = useState<string>("");
+  const [formError, setFormError] = useState<string>('');
 
   // Get native token data
   const nativeToken = getNativeToken(chainId);
@@ -43,7 +43,7 @@ const UniversalTransferForm = () => {
   // Fetch real-time balance for the selected token
   const tokenBalance = useTokenBalance({
     address: address,
-    tokenAddress: selectedToken?.address || "native",
+    tokenAddress: selectedToken?.address || 'native',
     enabled: !!address && !!selectedToken,
     isConfidential: selectedToken?.isEncrypted,
   });
@@ -68,17 +68,17 @@ const UniversalTransferForm = () => {
 
   const validateForm = (): boolean => {
     if (!selectedToken) {
-      setFormError("Please select a token");
+      setFormError('Please select a token');
       return false;
     }
 
     if (!recipient || !/^0x[a-fA-F0-9]{40}$/.test(recipient)) {
-      setFormError("Please enter a valid Ethereum address");
+      setFormError('Please enter a valid Ethereum address');
       return false;
     }
 
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
-      setFormError("Please enter a valid amount");
+      setFormError('Please enter a valid amount');
       return false;
     }
 
@@ -89,12 +89,12 @@ const UniversalTransferForm = () => {
 
     if (Number(amount) > Number(currentBalance)) {
       setFormError(
-        `Insufficient balance. You have ${currentBalance} ${selectedToken.symbol}`
+        `Insufficient balance. You have ${currentBalance} ${selectedToken.symbol}`,
       );
       return false;
     }
 
-    setFormError("");
+    setFormError('');
     return true;
   };
 
@@ -138,13 +138,13 @@ const UniversalTransferForm = () => {
 
   const handleDecrypt = async () => {
     if (!signer) {
-      console.error("Signer not initialized - please connect your wallet");
+      console.error('Signer not initialized - please connect your wallet');
       return;
     }
     try {
       await tokenBalance.decrypt();
     } catch (error) {
-      console.error("Failed to decrypt balance:", error);
+      console.error('Failed to decrypt balance:', error);
     }
   };
 
@@ -152,22 +152,22 @@ const UniversalTransferForm = () => {
     e.preventDefault();
 
     if (!validateForm()) return;
-    console.log("selected token", selectedToken);
+    console.log('selected token', selectedToken);
 
     try {
-      if (selectedToken.address === "native") {
+      if (selectedToken.address === 'native') {
         // Use native transfer logic
         await validateAndSendTransaction(
           recipient,
           amount,
-          tokenBalance.balance
+          tokenBalance.balance,
         );
       } else if (selectedToken.isConfidential) {
         await confidentialTransfer(
           selectedToken.address as `0x${string}`,
           amount,
           recipient as `0x${string}`,
-          selectedToken.decimals
+          selectedToken.decimals,
         );
       } else {
         // Use token transfer logic
@@ -175,37 +175,37 @@ const UniversalTransferForm = () => {
           selectedToken.address as `0x${string}`,
           amount,
           recipient as `0x${string}`,
-          selectedToken.decimals
+          selectedToken.decimals,
         );
       }
     } catch (error) {
-      console.error("Transfer error:", error);
-      setFormError("Transfer failed. Please try again.");
+      console.error('Transfer error:', error);
+      setFormError('Transfer failed. Please try again.');
     }
   };
 
   // Get the current balance to display - use tokenBalance hook data if available
   const displayBalance = !tokenBalance.isLoading
     ? tokenBalance.balance
-    : selectedToken?.balance || "0";
+    : selectedToken?.balance || '0';
 
   const handleReset = (clearTransfer?: () => void) => {
-    setAmount("");
-    setRecipient("");
+    setAmount('');
+    setRecipient('');
     if (clearTransfer) {
       clearTransfer();
     }
-    navigate("/transfer", { replace: true });
+    navigate('/transfer', { replace: true });
   };
 
   return (
-    <Card className="w-full border bg-card/60 backdrop-blur-xs">
-      <CardContent className="p-6">
+    <Card className="w-full bg-card/60 backdrop-blur-xs">
+      <CardContent className="p-8">
         <AnimatePresence mode="wait">
           {tokenIsSuccess ? (
             <TransferSuccessMessage
               amount={amount}
-              symbol={selectedToken?.symbol || ""}
+              symbol={selectedToken?.symbol || ''}
               hash={tokenHash}
               isConfirmed={tokenIsConfirmed}
               isConfirming={nativeIsConfirming}
@@ -214,7 +214,7 @@ const UniversalTransferForm = () => {
           ) : nativeIsSuccess ? (
             <TransferSuccessMessage
               amount={amount}
-              symbol={selectedToken?.symbol || ""}
+              symbol={selectedToken?.symbol || ''}
               hash={nativeHash}
               isConfirmed={nativeIsConfirmed}
               isConfirming={nativeIsConfirming}
@@ -223,7 +223,7 @@ const UniversalTransferForm = () => {
           ) : confidentialIsSuccess ? (
             <TransferSuccessMessage
               amount={amount}
-              symbol={selectedToken?.symbol || ""}
+              symbol={selectedToken?.symbol || ''}
               hash={confidentialHash}
               isConfirmed={confidentialisConfirmed}
               isConfirming={confidentialisConfirming}
@@ -281,7 +281,7 @@ const UniversalTransferForm = () => {
               {tokenIsError && tokenError && (
                 <TransferFormError
                   message={
-                    (tokenError as BaseError).shortMessage || "Transfer failed"
+                    (tokenError as BaseError).shortMessage || 'Transfer failed'
                   }
                 />
               )}
@@ -290,7 +290,7 @@ const UniversalTransferForm = () => {
                 <TransferFormError
                   message={
                     (confidentialError as BaseError).shortMessage ||
-                    "Transfer failed"
+                    'Transfer failed'
                   }
                 />
               )}
@@ -298,7 +298,7 @@ const UniversalTransferForm = () => {
               {nativeError && (
                 <TransferFormError
                   message={
-                    (nativeError as BaseError).shortMessage || "Transfer failed"
+                    (nativeError as BaseError).shortMessage || 'Transfer failed'
                   }
                 />
               )}
@@ -315,6 +315,7 @@ const UniversalTransferForm = () => {
                 hash={confidentialHash}
                 isConfirmed={confidentialIsSuccess}
               />
+
               <TransferButton
                 isEncrypting={isEncrypting}
                 isPending={

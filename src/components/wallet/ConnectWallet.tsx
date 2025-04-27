@@ -1,15 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+
 import { motion, AnimatePresence } from "framer-motion";
-import { Wallet, LogOut, ChevronDown, UsersRound } from "lucide-react";
+import { Wallet } from "lucide-react";
 import { useWallet } from "@/hooks/useWallet";
 import { useAppKitAccount } from "@reown/appkit/react";
 

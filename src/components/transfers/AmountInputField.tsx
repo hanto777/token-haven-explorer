@@ -1,8 +1,8 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Token } from "@/types/tokenTypes";
-import { Loader2 } from "lucide-react";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Token } from '@/types/tokenTypes';
+import { Loader2 } from 'lucide-react';
 
 interface AmountInputFieldProps {
   amount: string;
@@ -68,16 +68,18 @@ const AmountInputField = ({
         </div>
       </div>
 
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        className="text-xs h-auto py-1"
-        onClick={() => setAmount(displayBalance)}
-        disabled={isPending}
-      >
-        Use Max
-      </Button>
+      <div className="flex justify-end">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="text-xs h-auto py-1"
+          onClick={() => setAmount(displayBalance)}
+          disabled={isPending}
+        >
+          Use Max
+        </Button>
+      </div>
     </div>
   );
 };

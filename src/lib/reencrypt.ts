@@ -174,7 +174,7 @@ async function reencryptHandle(
   const signature = await signer.signTypedData(
     eip712.domain as TypedDataDomain,
     { Reencrypt: eip712.types.Reencrypt },
-    eip712.message as Record<string, any>,
+    eip712.message as Record<string, string>,
   );
 
   const reencryptedHandle = await instance.reencrypt(

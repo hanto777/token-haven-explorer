@@ -1,14 +1,14 @@
-import { useState, useEffect } from "react";
-import { parseEther } from "viem";
-import { toast } from "sonner";
+import { useState, useEffect } from 'react';
+import { parseEther } from 'viem';
+import { toast } from 'sonner';
 import {
   useSendTransaction,
   useTransactionReceipt,
   type BaseError,
-} from "wagmi";
+} from 'wagmi';
 
 export const useNativeTransfer = () => {
-  const [formError, setFormError] = useState<string>("");
+  const [formError, setFormError] = useState<string>('');
 
   // Wagmi hooks for transactions
   const {
@@ -29,7 +29,7 @@ export const useNativeTransfer = () => {
   useEffect(() => {
     if (error) {
       const errorMessage = (error as BaseError).shortMessage || error.message;
-      toast.error("Transfer failed", {
+      toast.error('Transfer failed', {
         description: errorMessage,
       });
     }
@@ -38,17 +38,17 @@ export const useNativeTransfer = () => {
   const validateAndSendTransaction = (
     recipient: string,
     amount: string,
-    balance: string
+    balance: string,
   ) => {
     // Validate address format
     if (!recipient || !/^0x[a-fA-F0-9]{40}$/.test(recipient)) {
-      setFormError("Please enter a valid Ethereum address");
+      setFormError('Please enter a valid Ethereum address');
       return false;
     }
 
     // Validate amount
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
-      setFormError("Please enter a valid amount");
+      setFormError('Please enter a valid amount');
       return false;
     }
 
@@ -58,7 +58,7 @@ export const useNativeTransfer = () => {
       return false;
     }
 
-    setFormError("");
+    setFormError('');
 
     // Send the transaction
     try {
@@ -68,15 +68,15 @@ export const useNativeTransfer = () => {
       });
       return true;
     } catch (error) {
-      console.error("Transfer error:", error);
-      setFormError("Transfer failed. Please try again.");
+      console.error('Transfer error:', error);
+      setFormError('Transfer failed. Please try again.');
       return false;
     }
   };
 
   const resetTransfer = () => {
     reset();
-    setFormError("");
+    setFormError('');
   };
 
   return {
