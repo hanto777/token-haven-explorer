@@ -1,5 +1,5 @@
-import { useTokens, Token } from '@/hooks/token/useTokens';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useTokens } from '@/hooks/token/useTokens';
+import { motion } from 'framer-motion';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,

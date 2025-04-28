@@ -19,4 +19,6 @@ export interface Token {
 export interface TokenContextType {
   tokens: Token[];
   isLoading: boolean;
+  decryptToken: () => void;
+  updateTokenBalance: () => void;
 }

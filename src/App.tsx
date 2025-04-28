@@ -1,40 +1,89 @@
-import { useEffect } from 'react';
-import { useWallet } from '@/hooks/useWallet';
-import { useChainId } from 'wagmi';
-import { useTokenStore } from '@/stores/useTokenStore';
-import { toast } from 'sonner';
-import { ThemeProvider } from '@/components/theme-provider';
-import { RouterProvider } from 'react-router-dom';
-import { router } from '@/router/router';
+import { Toaster } from '@/components/ui/toaster';
+import { Toaster as Sonner } from '@/components/ui/sonner';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { useChainId, WagmiProvider } from 'wagmi';
+import { AnimatePresence } from 'framer-motion';
+import { FhevmProvider } from '@/providers/FhevmProvider';
+import { ThemeProvider } from '@/providers/ThemeProvider';
+import { TransactionProvider } from '@/providers/TransactionProvider';
+import { createAppKit } from '@reown/appkit/react';
+import { TokenProvider } from '@/providers/TokenProvider';
+
+import Header from './components/layout/Header';
+import Dashboard from './pages/Dashboard';
+import Transfer from './pages/Transfer';
+import Swap from './pages/Swap';
+import NotFound from './pages/NotFound';
+import Auction from './pages/Auction';
+import AuctionMain from './pages/AuctionMain';
+import DeployAuction from './pages/DeployAuction';
+import { projectId, metadata, networks, wagmiAdapter } from './config';
+
+const queryClient = new QueryClient();
+
+createAppKit({
+  adapters: [wagmiAdapter],
+  defaultAccountTypes: { eip155: 'eoa' },
+  enableWalletGuide: false,
+  projectId,
+  networks,
+  metadata,
+  enableCoinbase: false,
+  coinbasePreference: 'smartWalletOnly',
+  themeMode: 'light' as const,
+  themeVariables: {
+    '--w3m-border-radius-master': '0',
+    '--w3m-font-family': 'Telegraf',
+  },
+  features: {
+    legalCheckbox: true,
+    analytics: true,
+    swaps: false,
+    send: false,
+    history: false,
+    connectMethodsOrder: ['email', 'social', 'wallet'],
+  },
+});
 
 function App() {
-  const { isConnected } = useWallet();
-  const chainId = useChainId();
-  const { initializeTokens, setIsLoading } = useTokenStore();
-
-  useEffect(() => {
-    if (isConnected) {
-      setIsLoading(true);
-      try {
-        initializeTokens(chainId);
-      } catch (error) {
-        console.error('Error initializing tokens:', error);
-        toast.error('Failed to load token data');
-      } finally {
-        setIsLoading(false);
-      }
-    }
-  }, [isConnected, chainId, initializeTokens, setIsLoading]);
-
+  if (!import.meta.env.VITE_KMS_ADDRESS)
+    throw new Error('Missing VITE_KMS_ADDRESS environment variable');
   return (
-    <ThemeProvider
-      attribute="class"
-      defaultTheme="system"
-      enableSystem
-      disableTransitionOnChange
-    >
-      <RouterProvider router={router} />
-    </ThemeProvider>
+    <WagmiProvider config={wagmiAdapter.wagmiConfig}>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <FhevmProvider>
+            <TokenProvider>
+              <TransactionProvider>
+                <ThemeProvider>
+                  <Toaster />
+                  <Sonner />
+                  <BrowserRouter>
+                    <Header />
+                    <AnimatePresence mode="wait">
+                      <Routes>
+                        <Route path="/" element={<Dashboard />} />
+                        <Route path="/transfer" element={<Transfer />} />
+                        <Route path="/swap" element={<Swap />} />
+                        <Route path="/auction" element={<Auction />} />
+                        <Route path="/auctions" element={<AuctionMain />} />
+                        <Route
+                          path="/deploy-auction"
+                          element={<DeployAuction />}
+                        />
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </AnimatePresence>
+                  </BrowserRouter>
+                </ThemeProvider>
+              </TransactionProvider>
+            </TokenProvider>
+          </FhevmProvider>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
   );
 }
 
