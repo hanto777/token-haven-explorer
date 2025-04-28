@@ -5,7 +5,7 @@ import { mainnet, sepolia, polygon } from 'wagmi/chains';
 import { formatUnits } from '@/lib/helper';
 import { erc20Abi } from '@/utils/erc20Abi';
 import { useSigner } from '../useSigner';
-import { useEncryptedBalance } from './useEncryptedBalance';
+import { useUserDecrypt } from '../fhevm/useUserDecrypt';
 import { Signer } from 'ethers';
 
 interface UseTokenBalanceProps {
@@ -34,12 +34,12 @@ export function useTokenBalance({
   const { signer } = useSigner();
 
   const {
-    decryptedBalance,
+    decryptedValue: decryptedBalance,
     lastUpdated,
     isDecrypting,
     decrypt: decryptBalance,
     error: decryptionError,
-  } = useEncryptedBalance({
+  } = useUserDecrypt({
     signer,
   });
 

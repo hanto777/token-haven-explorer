@@ -1,17 +1,17 @@
-import { TableCell, TableRow } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { TableCell, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 import {
   ArrowUpRight,
   LockKeyhole,
   UnlockKeyhole,
   Loader2,
-} from "lucide-react";
-import { useSigner } from "@/hooks/useSigner";
-import { useTokenBalance } from "@/hooks/token/useTokenBalance";
-import { useAccount } from "wagmi";
-import { useWallet } from "@/hooks/useWallet";
-import { Token } from "@/types/tokenTypes";
+} from 'lucide-react';
+import { useSigner } from '@/hooks/useSigner';
+import { useTokenBalance } from '@/hooks/token/useTokenBalance';
+import { useAccount } from 'wagmi';
+import { useWallet } from '@/hooks/useWallet';
+import { Token } from '@/types/tokenTypes';
 
 const TokenRow = ({ token }: { token: Token }) => {
   const { signer } = useSigner();
@@ -20,15 +20,10 @@ const TokenRow = ({ token }: { token: Token }) => {
   // Use the token balance hook to get real-time balance
   const tokenBalance = useTokenBalance({
     address: address,
-    tokenAddress: token.address || "native",
+    tokenAddress: token.address || 'native',
     isConfidential: token.isConfidential,
     enabled: !!address,
   });
-
-  //   const { decryptedBalance, lastUpdated, isDecrypting, decrypt, error } =
-  //     useEncryptedBalance({
-  //       signer,
-  //     });
 
   // Use the fetched balance if available, otherwise use the token's balance
   const displayBalance = !tokenBalance.isLoading
@@ -40,22 +35,22 @@ const TokenRow = ({ token }: { token: Token }) => {
     : token.value;
 
   const formatValue = (value: number | string) => {
-    if (typeof value === "string") return value;
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
+    if (typeof value === 'string') return value;
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
     }).format(value);
   };
 
   const handleDecrypt = async () => {
     if (!signer) {
-      console.error("Signer not initialized - please connect your wallet");
+      console.error('Signer not initialized - please connect your wallet');
       return;
     }
     try {
       await tokenBalance.decrypt();
     } catch (error) {
-      console.error("Failed to decrypt balance:", error);
+      console.error('Failed to decrypt balance:', error);
     }
   };
 
@@ -70,7 +65,7 @@ const TokenRow = ({ token }: { token: Token }) => {
                 alt={token.name}
                 className="w-6 h-6 object-contain"
                 onError={(e) => {
-                  e.currentTarget.style.display = "none";
+                  e.currentTarget.style.display = 'none';
                 }}
               />
             ) : (
@@ -91,11 +86,11 @@ const TokenRow = ({ token }: { token: Token }) => {
         <span
           className={`text-xs px-1.5 py-0.5 rounded-md ${
             token.change24h >= 0
-              ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-              : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+              : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
           }`}
         >
-          {token.change24h >= 0 ? "+" : ""}
+          {token.change24h >= 0 ? '+' : ''}
           {token.change24h.toFixed(2)}%
         </span>
       </TableCell>
