@@ -1,14 +1,15 @@
-import { useContext } from "react";
-import TokenContext from "@/providers/TokenContext";
+
+import { useTokenStore } from '@/stores/useTokenStore';
 
 export const useTokens = () => {
-  const context = useContext(TokenContext);
-
-  if (!context) {
-    throw new Error("useTokens must be used within a TokenProvider");
-  }
+  const store = useTokenStore();
 
   return {
-    ...context,
+    tokens: store.tokens,
+    isLoading: store.isLoading,
+    storeDecrypt: store.storeDecrypt,
   };
 };
+
+// Re-export Token type from types file
+export type { Token } from '@/types/tokenTypes';
